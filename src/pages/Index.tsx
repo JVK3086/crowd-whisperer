@@ -24,9 +24,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Real-time monitoring, analytics, and crowd management controls
             </p>
-            <Button className="w-full">
-              Access Dashboard
-            </Button>
+            <Link to="/admin">
+              <Button className="w-full">
+                Access Dashboard
+              </Button>
+            </Link>
           </Card>
           
           <Card className="p-6">
