@@ -5,6 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAIAnalysis, useAlertManager } from '../hooks/useAIAnalysis';
+import { CrowdHeatmap } from '../components/ai/CrowdHeatmap';
+import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
+import { AIInsights } from '../components/ai/AIInsights';
 import { 
   Shield, 
   Users, 
@@ -53,6 +57,15 @@ const AdminDashboard = () => {
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
+  
+  // AI Analysis hooks
+  const { data: aiAnalysis, loading: aiLoading, refresh: refreshAI } = useAIAnalysis();
+  const { 
+    getActiveAlerts, 
+    acknowledgeAlert, 
+    dismissAlert, 
+    getCriticalAlerts 
+  } = useAlertManager();
 
   const getDensityLevel = (current: number, capacity: number) => {
     const percentage = (current / capacity) * 100;
@@ -148,128 +161,42 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="p-4">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">Total Occupancy</span>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-bold">1,307</div>
-                  <div className="text-xs text-muted-foreground">of 2,250 capacity</div>
-                  <Progress value={58} className="mt-2" />
-                </div>
-              </Card>
+            {/* AI Analysis Section */}
+            {aiAnalysis && (
+              <AIInsights 
+                analysis={aiAnalysis} 
+                loading={aiLoading}
+                onRefresh={refreshAI}
+              />
+            )}
 
-              <Card className="p-4">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  <span className="text-sm font-medium">Active Alerts</span>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-bold text-orange-500">3</div>
-                  <div className="text-xs text-muted-foreground">2 critical, 1 warning</div>
-                </div>
-              </Card>
+            {/* Critical Alerts */}
+            {aiAnalysis && getCriticalAlerts().length > 0 && (
+              <Alert className="border-red-500 bg-red-500/10">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>{getCriticalAlerts().length} critical alert(s) require immediate attention!</strong>
+                </AlertDescription>
+              </Alert>
+            )}
 
-              <Card className="p-4">
-                <div className="flex items-center gap-2">
-                  <Camera className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm font-medium">CCTV Feeds</span>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-bold text-blue-500">18</div>
-                  <div className="text-xs text-muted-foreground">All operational</div>
-                </div>
-              </Card>
+            {/* AI-Powered Live Crowd Heatmap */}
+            {aiAnalysis && (
+              <CrowdHeatmap 
+                crowdData={aiAnalysis.crowdDensity}
+                selectedZone={selectedZone?.toString()}
+                onZoneSelect={(zoneId) => setSelectedZone(parseInt(zoneId))}
+              />
+            )}
 
-              <Card className="p-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span className="text-sm font-medium">Flow Rate</span>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-bold text-green-500">127</div>
-                  <div className="text-xs text-muted-foreground">people/min avg</div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Live Crowd Heatmap */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Live Crowd Heatmap
-              </h3>
-              
-              <div className="relative w-full h-96 bg-muted rounded-lg border overflow-hidden">
-                {/* Venue Layout */}
-                <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-muted/40">
-                  {/* Zone markers */}
-                  {venueZones.map((zone) => (
-                    <div
-                      key={zone.id}
-                      className={cn(
-                        "absolute w-12 h-12 rounded-full border-4 border-white shadow-lg cursor-pointer transition-all",
-                        getDensityColor(zone.current, zone.capacity),
-                        selectedZone === zone.id && "ring-4 ring-primary"
-                      )}
-                      style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
-                      onClick={() => setSelectedZone(selectedZone === zone.id ? null : zone.id)}
-                    >
-                      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-medium bg-background px-2 py-1 rounded border whitespace-nowrap">
-                        {zone.name}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Camera indicators */}
-                  {venueZones.map((zone) => (
-                    <div
-                      key={`cam-${zone.id}`}
-                      className="absolute"
-                      style={{ left: `${zone.x + 8}%`, top: `${zone.y - 5}%` }}
-                    >
-                      <div className="flex items-center gap-1 bg-background px-1 py-0.5 rounded text-xs">
-                        <Camera className="h-3 w-3" />
-                        {zone.cameras}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Zone Details */}
-              {selectedZone && (
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  {(() => {
-                    const zone = venueZones.find(z => z.id === selectedZone);
-                    if (!zone) return null;
-                    return (
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                          <span className="text-sm text-muted-foreground">Zone</span>
-                          <div className="font-semibold">{zone.name}</div>
-                        </div>
-                        <div>
-                          <span className="text-sm text-muted-foreground">Occupancy</span>
-                          <div className="font-semibold">{zone.current}/{zone.capacity}</div>
-                        </div>
-                        <div>
-                          <span className="text-sm text-muted-foreground">Density</span>
-                          <div className="font-semibold">{getDensityLevel(zone.current, zone.capacity)}%</div>
-                        </div>
-                        <div>
-                          <span className="text-sm text-muted-foreground">Cameras</span>
-                          <div className="font-semibold">{zone.cameras} active</div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-            </Card>
+            {/* Predictive Alerts */}
+            {aiAnalysis && (
+              <PredictiveAlerts 
+                alerts={aiAnalysis.predictiveAlerts}
+                onAcknowledge={acknowledgeAlert}
+                onDismiss={dismissAlert}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="monitoring" className="space-y-6">

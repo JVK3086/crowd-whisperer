@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useAIAnalysis } from '../hooks/useAIAnalysis';
 import { 
   MapPin, 
   Navigation, 
@@ -35,6 +36,9 @@ const MobileApp = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [showPanicConfirm, setShowPanicConfirm] = useState(false);
+  
+  // AI Analysis for real-time crowd data
+  const { data: aiAnalysis, loading: aiLoading } = useAIAnalysis(15000); // Refresh every 15 seconds
 
   const getDensityColor = (density: number) => {
     if (density >= 80) return 'bg-destructive';
@@ -104,12 +108,15 @@ const MobileApp = () => {
         </Button>
       </div>
 
-      {/* Live Crowd Map */}
+      {/* AI-Powered Live Crowd Map */}
       <Card className="mx-4 mb-4">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Live Crowd Map
+            AI Crowd Map
+            <Badge variant="outline" className="ml-auto text-xs">
+              {aiLoading ? 'UPDATING...' : 'LIVE'}
+            </Badge>
           </h2>
           
           {/* Map Container */}
@@ -147,6 +154,39 @@ const MobileApp = () => {
               </svg>
             </div>
           </div>
+
+          {/* Current Zone AI Status */}
+          {aiAnalysis && (
+            <div className="mb-3 p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">Your Area: Main Entrance</span>
+                {(() => {
+                  const currentZone = aiAnalysis.crowdDensity.find(zone => 
+                    zone.zoneName.includes('Entrance')
+                  );
+                  return currentZone ? (
+                    <Badge variant={
+                      currentZone.riskLevel === 'critical' ? 'destructive' :
+                      currentZone.riskLevel === 'high' ? 'destructive' :
+                      currentZone.riskLevel === 'medium' ? 'secondary' : 'default'
+                    } className="text-xs">
+                      {currentZone.riskLevel.toUpperCase()}
+                    </Badge>
+                  ) : null;
+                })()}
+              </div>
+              {(() => {
+                const currentZone = aiAnalysis.crowdDensity.find(zone => 
+                  zone.zoneName.includes('Entrance')
+                );
+                return currentZone && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    AI Analysis: {currentZone.utilizationPercentage.toFixed(1)}% capacity utilized
+                  </p>
+                );
+              })()}
+            </div>
+          )}
 
           {/* Legend */}
           <div className="flex flex-wrap gap-2 mt-3">
@@ -221,25 +261,41 @@ const MobileApp = () => {
         </div>
       </Card>
 
-      {/* Notifications */}
+      {/* AI-Powered Notifications */}
       <Card className="mx-4 mb-6">
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Live Alerts
+            AI Safety Alerts
           </h3>
           <div className="space-y-2">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="p-3 rounded border bg-muted/50">
+            {aiAnalysis && aiAnalysis.predictiveAlerts.length > 0 ? (
+              aiAnalysis.predictiveAlerts.slice(0, 3).map((alert) => (
+                <div key={alert.id} className="p-3 rounded border bg-muted/50">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                      alert.severity === 'emergency' ? 'text-red-500' : 'text-orange-500'
+                    }`} />
+                    <div className="flex-1">
+                      <p className="text-sm">{alert.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Confidence: {(alert.confidence * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-3 rounded border bg-green-50 dark:bg-green-950">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                  <Shield className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                    <p className="text-sm">All clear! No safety concerns detected.</p>
+                    <p className="text-xs text-muted-foreground mt-1">AI monitoring active</p>
                   </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </Card>
