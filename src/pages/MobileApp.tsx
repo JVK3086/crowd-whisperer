@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAIAnalysis } from '../hooks/useAIAnalysis';
+import { PanicButton } from '../components/mobile/PanicButton';
+import { SafeNavigation } from '../components/mobile/SafeNavigation';
+import { realTimeService } from '../services/realTimeService';
 import { 
   MapPin, 
   Navigation, 
@@ -13,7 +17,13 @@ import {
   Bell,
   Languages,
   Wifi,
-  WifiOff
+  WifiOff,
+  Map,
+  Clock,
+  Activity,
+  Phone,
+  Download,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +36,7 @@ const crowdZones = [
   { id: 5, name: "Central Hall", density: 70, status: "high", x: 50, y: 55 },
 ];
 
-const notifications = [
+const mockNotifications = [
   { id: 1, type: "warning", message: "High crowd density at Main Entrance. Use Exit Gate B instead.", time: "2 min ago" },
   { id: 2, type: "info", message: "New safe route available to Food Court via West Wing.", time: "5 min ago" },
 ];
@@ -35,10 +45,30 @@ const MobileApp = () => {
   const [currentLocation, setCurrentLocation] = useState({ x: 25, y: 35 });
   const [isOnline, setIsOnline] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [showPanicConfirm, setShowPanicConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState('map');
+  const [notifications, setNotifications] = useState(mockNotifications);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   
   // AI Analysis for real-time crowd data
-  const { data: aiAnalysis, loading: aiLoading } = useAIAnalysis(15000); // Refresh every 15 seconds
+  const { data: aiAnalysis, loading: aiLoading } = useAIAnalysis(15000);
+
+  // Real-time connection status
+  useEffect(() => {
+    const checkConnection = () => {
+      const connected = realTimeService.getConnectionStatus();
+      setIsOnline(connected);
+      
+      // If offline, enable offline mode
+      if (!connected && !isOfflineMode) {
+        setIsOfflineMode(true);
+      }
+    };
+    
+    checkConnection();
+    const interval = setInterval(checkConnection, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isOfflineMode]);
 
   const getDensityColor = (density: number) => {
     if (density >= 80) return 'bg-destructive';
@@ -56,64 +86,119 @@ const MobileApp = () => {
     }
   };
 
-  const handlePanicButton = () => {
-    if (showPanicConfirm) {
-      // Simulate emergency alert
-      alert('Emergency alert sent to authorities with your location!');
-      setShowPanicConfirm(false);
-    } else {
-      setShowPanicConfirm(true);
-      setTimeout(() => setShowPanicConfirm(false), 5000);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-semibold">CrowdSafe</h1>
+            <h1 className="text-lg font-semibold">SCFMS Mobile</h1>
+            {isOfflineMode && (
+              <Badge variant="secondary" className="text-xs">
+                <Download className="w-3 h-3 mr-1" />
+                Offline
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-2 h-2 rounded-full", 
+              isOnline ? "bg-green-400" : "bg-red-400"
+            )} />
             {isOnline ? (
               <Wifi className="h-4 w-4 text-green-500" />
             ) : (
               <WifiOff className="h-4 w-4 text-destructive" />
             )}
-            <Button variant="ghost" size="sm">
-              <Languages className="h-4 w-4" />
-            </Button>
+            <select 
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              className="bg-background border rounded px-2 py-1 text-xs"
+            >
+              <option value="en">EN</option>
+              <option value="hi">हि</option>
+              <option value="te">తె</option>
+              <option value="ta">த</option>
+            </select>
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  {notifications.length}
+                </span>
+              )}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Emergency Panic Button */}
-      <div className="px-4 py-2">
-        <Button
-          onClick={handlePanicButton}
-          className={cn(
-            "w-full h-12 text-base font-semibold transition-all",
-            showPanicConfirm 
-              ? "bg-destructive text-destructive-foreground animate-pulse" 
-              : "bg-red-600 hover:bg-red-700 text-white"
-          )}
-        >
-          <AlertTriangle className="h-5 w-5 mr-2" />
-          {showPanicConfirm ? "CONFIRM EMERGENCY ALERT" : "PANIC BUTTON"}
-        </Button>
-      </div>
+      {/* Main Content with Tabs */}
+      <div className="p-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="map" className="flex items-center gap-1">
+              <Map className="w-4 h-4" />
+              <span className="hidden sm:inline">Map</span>
+            </TabsTrigger>
+            <TabsTrigger value="navigate" className="flex items-center gap-1">
+              <Navigation className="w-4 h-4" />
+              <span className="hidden sm:inline">Navigate</span>
+            </TabsTrigger>
+            <TabsTrigger value="emergency" className="flex items-center gap-1">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Emergency</span>
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex items-center gap-1">
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Alerts</span>
+            </TabsTrigger>
+          </TabsList>
 
+          <TabsContent value="map" className="mt-6 space-y-4">
+            <LiveCrowdMap 
+              crowdZones={crowdZones}
+              currentLocation={currentLocation}
+              aiAnalysis={aiAnalysis}
+              aiLoading={aiLoading}
+              getDensityColor={getDensityColor}
+              getStatusColor={getStatusColor}
+            />
+          </TabsContent>
+
+          <TabsContent value="navigate" className="mt-6">
+            <SafeNavigation />
+          </TabsContent>
+
+          <TabsContent value="emergency" className="mt-6">
+            <div className="space-y-6">
+              <PanicButton />
+              <EmergencyContacts />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="alerts" className="mt-6">
+            <NotificationCenter 
+              notifications={notifications}
+              aiAnalysis={aiAnalysis}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+// Live Crowd Map Component
+const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor }: any) => {
+  return (
+    <div className="space-y-4">
       {/* AI-Powered Live Crowd Map */}
-      <Card className="mx-4 mb-4">
+      <Card>
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            AI Crowd Map
+            Live Crowd Heatmap
             <Badge variant="outline" className="ml-auto text-xs">
               {aiLoading ? 'UPDATING...' : 'LIVE'}
             </Badge>
@@ -125,24 +210,27 @@ const MobileApp = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-muted/40">
               {/* Current Location */}
               <div 
-                className="absolute w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse"
+                className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse z-10"
                 style={{ left: `${currentLocation.x}%`, top: `${currentLocation.y}%` }}
               />
               
               {/* Crowd Zones */}
-              {crowdZones.map((zone) => (
+              {crowdZones.map((zone: any) => (
                 <div
                   key={zone.id}
                   className={cn(
-                    "absolute w-8 h-8 rounded-full border-2 border-white shadow-lg opacity-80",
+                    "absolute w-8 h-8 rounded-full border-2 border-white shadow-lg opacity-80 flex items-center justify-center text-white text-xs font-bold",
                     getDensityColor(zone.density)
                   )}
                   style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
-                />
+                  title={`${zone.name}: ${zone.density}%`}
+                >
+                  {zone.density}
+                </div>
               ))}
 
               {/* Safe Route Path */}
-              <svg className="absolute inset-0 w-full h-full">
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
                 <path
                   d="M 25 35 Q 40 45 60 40"
                   stroke="#10b981"
@@ -151,17 +239,20 @@ const MobileApp = () => {
                   fill="none"
                   className="animate-pulse"
                 />
+                <text x="35" y="50" fill="#10b981" fontSize="10" className="font-medium">
+                  Safe Route
+                </text>
               </svg>
             </div>
           </div>
 
           {/* Current Zone AI Status */}
           {aiAnalysis && (
-            <div className="mb-3 p-3 bg-muted/50 rounded-lg">
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">Your Area: Main Entrance</span>
                 {(() => {
-                  const currentZone = aiAnalysis.crowdDensity.find(zone => 
+                  const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
                     zone.zoneName.includes('Entrance')
                   );
                   return currentZone ? (
@@ -176,7 +267,7 @@ const MobileApp = () => {
                 })()}
               </div>
               {(() => {
-                const currentZone = aiAnalysis.crowdDensity.find(zone => 
+                const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
                   zone.zoneName.includes('Entrance')
                 );
                 return currentZone && (
@@ -189,41 +280,41 @@ const MobileApp = () => {
           )}
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-3 mt-3 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-xs">Low</span>
+              <span>Low (&lt;40%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span className="text-xs">Medium</span>
+              <span>Medium (40-60%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-xs">High</span>
+              <span>High (60-80%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-destructive rounded-full"></div>
-              <span className="text-xs">Critical</span>
+              <span>Critical (&gt;80%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-xs">You</span>
+              <span>Your Location</span>
             </div>
           </div>
         </div>
       </Card>
 
       {/* Zone Status */}
-      <Card className="mx-4 mb-4">
+      <Card>
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4" />
             Zone Status
           </h3>
           <div className="space-y-2">
-            {crowdZones.map((zone) => (
-              <div key={zone.id} className="flex items-center justify-between p-2 rounded border">
+            {crowdZones.map((zone: any) => (
+              <div key={zone.id} className="flex items-center justify-between p-3 rounded border">
                 <span className="text-sm font-medium">{zone.name}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{zone.density}%</span>
@@ -236,41 +327,81 @@ const MobileApp = () => {
           </div>
         </div>
       </Card>
+    </div>
+  );
+};
 
-      {/* Safe Navigation */}
-      <Card className="mx-4 mb-4">
+// Emergency Contacts Component
+const EmergencyContacts = () => {
+  const contacts = [
+    { name: "Emergency Services", number: "112", type: "emergency" },
+    { name: "Venue Security", number: "+91-9876543210", type: "security" },
+    { name: "Medical Assistance", number: "+91-9876543211", type: "medical" },
+    { name: "Event Control Room", number: "+91-9876543212", type: "control" }
+  ];
+
+  return (
+    <Card>
+      <div className="p-4">
+        <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <Phone className="h-4 w-4" />
+          Emergency Contacts
+        </h3>
+        <div className="space-y-3">
+          {contacts.map((contact, index) => (
+            <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <div className="font-medium text-sm">{contact.name}</div>
+                <div className="text-xs text-muted-foreground">{contact.number}</div>
+              </div>
+              <Button size="sm" variant="outline">
+                <Phone className="w-4 h-4 mr-1" />
+                Call
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+// Notification Center Component
+const NotificationCenter = ({ notifications, aiAnalysis }: any) => {
+  return (
+    <div className="space-y-4">
+      <Card>
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Route className="h-4 w-4" />
-            Safe Navigation
+            <Bell className="h-4 w-4" />
+            Safety Notifications
           </h3>
           <div className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
-              <Navigation className="h-4 w-4 mr-2" />
-              Navigate to Exit Gate B (Recommended)
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <MapPin className="h-4 w-4 mr-2" />
-              Find Nearest Restroom
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Users className="h-4 w-4 mr-2" />
-              Locate Less Crowded Areas
-            </Button>
+            {notifications.map((notification: any) => (
+              <div key={notification.id} className="p-3 rounded border bg-muted/50">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
+                  <div className="flex-1">
+                    <p className="text-sm">{notification.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </Card>
 
-      {/* AI-Powered Notifications */}
-      <Card className="mx-4 mb-6">
+      {/* AI-Powered Alerts */}
+      <Card>
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Bell className="h-4 w-4" />
+            <Activity className="h-4 w-4" />
             AI Safety Alerts
           </h3>
           <div className="space-y-2">
             {aiAnalysis && aiAnalysis.predictiveAlerts.length > 0 ? (
-              aiAnalysis.predictiveAlerts.slice(0, 3).map((alert) => (
+              aiAnalysis.predictiveAlerts.slice(0, 3).map((alert: any) => (
                 <div key={alert.id} className="p-3 rounded border bg-muted/50">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
@@ -299,28 +430,6 @@ const MobileApp = () => {
           </div>
         </div>
       </Card>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border px-4 py-2">
-        <div className="flex justify-around">
-          <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
-            <MapPin className="h-4 w-4" />
-            <span className="text-xs mt-1">Map</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
-            <Navigation className="h-4 w-4" />
-            <span className="text-xs mt-1">Navigate</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
-            <Bell className="h-4 w-4" />
-            <span className="text-xs mt-1">Alerts</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-col h-auto py-2">
-            <Users className="h-4 w-4" />
-            <span className="text-xs mt-1">Status</span>
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };
