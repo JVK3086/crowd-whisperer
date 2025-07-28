@@ -8,6 +8,8 @@ import { useAIAnalysis } from '../hooks/useAIAnalysis';
 import { useMobileSettings } from '../hooks/useSettings';
 import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
+import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
+import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { realTimeService } from '../services/realTimeService';
 import { 
   MapPin, 
@@ -140,6 +142,13 @@ const MobileApp = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
+      {/* Gate Status Notifications */}
+      <GateStatusNotification 
+        maxNotifications={2}
+        autoHideDelay={6000}
+        className="top-16"
+      />
+
       {/* Admin Announcements */}
       {activeAnnouncements.length > 0 && (
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
@@ -209,13 +218,17 @@ const MobileApp = () => {
       {/* Main Content with Tabs */}
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="map" className="flex items-center gap-1">
               <Map className="w-4 h-4" />
               <span className="hidden sm:inline">Map</span>
             </TabsTrigger>
-            <TabsTrigger value="navigate" className="flex items-center gap-1">
+            <TabsTrigger value="gates" className="flex items-center gap-1">
               <Navigation className="w-4 h-4" />
+              <span className="hidden sm:inline">Gates</span>
+            </TabsTrigger>
+            <TabsTrigger value="navigate" className="flex items-center gap-1">
+              <Route className="w-4 h-4" />
               <span className="hidden sm:inline">Navigate</span>
             </TabsTrigger>
             <TabsTrigger value="emergency" className="flex items-center gap-1">
@@ -229,6 +242,34 @@ const MobileApp = () => {
           </TabsList>
 
           <TabsContent value="map" className="mt-6 space-y-4">
+            {/* Quick Gate Status */}
+            <Card className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium">Gate Status</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>2 Entrances Open</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>1 Exit Open</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab('gates')}
+                    className="text-xs h-6 px-2"
+                  >
+                    View All
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             <LiveCrowdMap 
               crowdZones={crowdZones}
               currentLocation={currentLocation}
@@ -238,6 +279,14 @@ const MobileApp = () => {
               getStatusColor={getStatusColor}
               alertThresholds={alertThresholds}
               isFeatureEnabled={isFeatureEnabled}
+            />
+          </TabsContent>
+
+          <TabsContent value="gates" className="mt-6">
+            <EntranceExitStatus 
+              refreshInterval={mapRefreshInterval}
+              showThroughput={isFeatureEnabled('realTimeUpdatesEnabled')}
+              showEmergencyExits={emergencySettings?.emergencyExitsVisible !== false}
             />
           </TabsContent>
 

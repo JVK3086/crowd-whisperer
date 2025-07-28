@@ -126,7 +126,9 @@ class EmergencyManagementService {
           'Broadcast evacuation instructions',
           'Deploy security teams to guide crowds',
           'Open all emergency exits',
-          'Monitor crowd flow via CCTV'
+          'Close non-essential entrances',
+          'Monitor crowd flow via CCTV',
+          'Update mobile app with exit information'
         ],
         estimatedDuration: 15
       }
@@ -272,6 +274,80 @@ class EmergencyManagementService {
 
     alert.status = status;
     return true;
+  }
+
+  /**
+   * Emergency gate control - automatically manages gates during emergencies
+   */
+  async activateEmergencyGateProtocol(severity: 'low' | 'medium' | 'high' | 'critical'): Promise<void> {
+    console.log(`Activating emergency gate protocol for ${severity} emergency`);
+
+    if (severity === 'critical' || severity === 'high') {
+      // Open all emergency exits
+      const emergencyExits = ['emergency-exit-1', 'emergency-exit-2'];
+      for (const exitId of emergencyExits) {
+        realTimeService.sendGateControl(exitId, 'open');
+      }
+
+      // Open main exits for evacuation
+      const mainExits = ['exit-gate-a', 'exit-gate-b'];
+      for (const exitId of mainExits) {
+        realTimeService.sendGateControl(exitId, 'open');
+      }
+
+      // Close or restrict entrances to prevent new people from entering
+      if (severity === 'critical') {
+        const entrances = ['main-entrance', 'south-entrance'];
+        for (const entranceId of entrances) {
+          realTimeService.sendGateControl(entranceId, 'close');
+        }
+      }
+    }
+
+    // Send real-time update to mobile apps about emergency exits
+    realTimeService.emitEvent({
+      type: 'emergency_alert',
+      data: {
+        type: 'emergency_gate_protocol',
+        severity,
+        message: `Emergency gate protocol activated. ${severity === 'critical' ? 'All emergency exits open, entrances closed.' : 'Emergency exits opened.'}`,
+        instructions: 'Please proceed to the nearest open exit. Follow emergency personnel instructions.',
+        openExits: severity === 'critical' ? ['emergency-exit-1', 'emergency-exit-2', 'exit-gate-a', 'exit-gate-b'] : ['emergency-exit-1', 'emergency-exit-2']
+      },
+      timestamp: new Date(),
+      priority: 'critical'
+    });
+  }
+
+  /**
+   * Deactivate emergency protocols and return gates to normal operation
+   */
+  async deactivateEmergencyGateProtocol(): Promise<void> {
+    console.log('Deactivating emergency gate protocol');
+
+    // Close emergency exits (back to normal)
+    const emergencyExits = ['emergency-exit-1', 'emergency-exit-2'];
+    for (const exitId of emergencyExits) {
+      realTimeService.sendGateControl(exitId, 'close');
+    }
+
+    // Reopen normal entrances
+    const entrances = ['main-entrance', 'south-entrance'];
+    for (const entranceId of entrances) {
+      realTimeService.sendGateControl(entranceId, 'open');
+    }
+
+    // Send normal operations update
+    realTimeService.emitEvent({
+      type: 'system_status',
+      data: {
+        type: 'normal_operations_resumed',
+        message: 'Emergency protocol deactivated. Normal gate operations resumed.',
+        gates_status: 'normal'
+      },
+      timestamp: new Date(),
+      priority: 'medium'
+    });
   }
 }
 

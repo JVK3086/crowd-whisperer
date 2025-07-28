@@ -187,6 +187,23 @@ class RealTimeService {
   sendGateControl(gateId: string, action: 'open' | 'close'): void {
     if (this.isConnected) {
       console.log(`Sending gate control: ${gateId} - ${action}`);
+      
+      // Immediately broadcast gate status change to mobile clients
+      this.emit({
+        type: 'gate_status',
+        data: {
+          gates: [{
+            id: gateId,
+            status: action === 'open' ? 'open' : 'closed',
+            throughput: action === 'open' ? Math.floor(Math.random() * 50) + 10 : 0,
+            lastUpdated: new Date(),
+            adminControlled: true
+          }]
+        },
+        timestamp: new Date(),
+        priority: 'medium'
+      });
+      
       // In real implementation, send to server
     }
   }
@@ -209,8 +226,8 @@ class RealTimeService {
     return this.isConnected;
   }
 
-  // Method to emit events (used by settings service)
-  emit(event: RealTimeEvent): void {
+  // Method to publicly emit events (used by settings service and emergency management)
+  public emitEvent(event: RealTimeEvent): void {
     this.emit(event);
   }
 }
