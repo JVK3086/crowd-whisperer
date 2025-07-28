@@ -10,6 +10,7 @@ import { CrowdHeatmap } from '../components/ai/CrowdHeatmap';
 import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
 import { AIInsights } from '../components/ai/AIInsights';
 import { InteractiveCrowdMap } from '../components/ai/InteractiveCrowdMap';
+import { SettingsPanel } from '../components/admin/SettingsPanel';
 import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
 import { 
@@ -156,12 +157,13 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Map</TabsTrigger>
             <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
             <TabsTrigger value="alerts">Alert Management</TabsTrigger>
             <TabsTrigger value="controls">System Controls</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -359,6 +361,10 @@ const AdminDashboard = () => {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <SettingsPanel />
           </TabsContent>
         </Tabs>
       </div>

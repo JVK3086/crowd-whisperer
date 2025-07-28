@@ -1,5 +1,5 @@
 interface RealTimeEvent {
-  type: 'crowd_update' | 'emergency_alert' | 'gate_status' | 'notification' | 'system_status';
+  type: 'crowd_update' | 'emergency_alert' | 'gate_status' | 'notification' | 'system_status' | 'settings_update';
   data: any;
   timestamp: Date;
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -207,6 +207,11 @@ class RealTimeService {
 
   getConnectionStatus(): boolean {
     return this.isConnected;
+  }
+
+  // Method to emit events (used by settings service)
+  emit(event: RealTimeEvent): void {
+    this.emit(event);
   }
 }
 
