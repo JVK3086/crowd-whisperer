@@ -150,7 +150,7 @@ export const GateStatusNotification = ({
                 )}
                 <div className="flex items-center gap-2 mt-2">
                   <Badge 
-                    variant={notification.newStatus === 'open' ? 'default' : 'destructive'} 
+                    variant={notification.newStatus === 'open' ? 'default' as const : 'destructive' as const} 
                     className="text-xs"
                   >
                     {notification.newStatus.toUpperCase()}
