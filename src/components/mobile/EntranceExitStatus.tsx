@@ -211,15 +211,15 @@ export const EntranceExitStatus = ({
   const getStatusBadgeVariant = (status: GateStatus['status']) => {
     switch (status) {
       case 'open':
-        return 'default';
+        return 'default' as const;
       case 'closed':
-        return 'destructive';
+        return 'destructive' as const;
       case 'maintenance':
-        return 'secondary';
+        return 'secondary' as const;
       case 'restricted':
-        return 'outline';
+        return 'outline' as const;
       default:
-        return 'secondary';
+        return 'secondary' as const;
     }
   };
 
