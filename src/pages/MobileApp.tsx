@@ -31,22 +31,26 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock data for crowd density zones
+// Mock data for crowd density zones - Kanha Shantivanam locations
 const crowdZones = [
-  { id: 1, name: "Main Entrance", density: 85, status: "high", x: 20, y: 30 },
-  { id: 2, name: "Food Court", density: 45, status: "medium", x: 60, y: 40 },
-  { id: 3, name: "Exit Gate A", density: 92, status: "critical", x: 80, y: 70 },
-  { id: 4, name: "West Wing", density: 25, status: "low", x: 15, y: 60 },
-  { id: 5, name: "Central Hall", density: 70, status: "high", x: 50, y: 55 },
+  { id: 1, name: "Main Gate (West)", density: 85, status: "high", x: 15, y: 42 },
+  { id: 2, name: "Meditation Hall", density: 45, status: "medium", x: 50, y: 15 },
+  { id: 3, name: "Dining Hall", density: 72, status: "high", x: 35, y: 75 },
+  { id: 4, name: "Central Hall", density: 92, status: "critical", x: 50, y: 45 },
+  { id: 5, name: "North Block", density: 25, status: "low", x: 70, y: 20 },
+  { id: 6, name: "Sports Complex", density: 35, status: "low", x: 65, y: 80 },
+  { id: 7, name: "East Gate", density: 58, status: "medium", x: 85, y: 50 },
+  { id: 8, name: "Auditorium", density: 68, status: "high", x: 60, y: 25 },
 ];
 
 const mockNotifications = [
-  { id: 1, type: "warning", message: "High crowd density at Main Entrance. Use Exit Gate B instead.", time: "2 min ago" },
-  { id: 2, type: "info", message: "New safe route available to Food Court via West Wing.", time: "5 min ago" },
+  { id: 1, type: "warning", message: "High crowd density at Central Hall. Consider visiting Meditation Hall instead.", time: "2 min ago" },
+  { id: 2, type: "info", message: "New safe route available to Dining Hall via North Block.", time: "5 min ago" },
+  { id: 3, type: "info", message: "Sports Complex has low crowd density - ideal for peaceful activities.", time: "8 min ago" },
 ];
 
 const MobileApp = () => {
-  const [currentLocation, setCurrentLocation] = useState({ x: 25, y: 35 });
+  const [currentLocation, setCurrentLocation] = useState({ x: 20, y: 42 }); // Near Main Gate
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState('map');
   const [notifications, setNotifications] = useState(mockNotifications);
@@ -372,51 +376,125 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Live Crowd Heatmap
+            Kanha Shantivanam - Live Map
             <Badge variant="outline" className="ml-auto text-xs">
               {aiLoading ? 'UPDATING...' : 'LIVE'}
             </Badge>
           </h2>
           
           {/* Map Container */}
-          <div className="relative w-full h-64 bg-muted rounded-lg border overflow-hidden">
-            {/* Venue Layout */}
-            <div className="absolute inset-0 bg-gradient-to-br from-muted/20 to-muted/40">
-              {/* Current Location */}
-              <div 
-                className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse z-10"
-                style={{ left: `${currentLocation.x}%`, top: `${currentLocation.y}%` }}
-              />
+          <div className="relative w-full h-80 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border overflow-hidden">
+            {/* Venue Layout Background */}
+            <div className="absolute inset-0">
+              {/* Main Zones */}
+              {/* North Zone */}
+              <div className="absolute top-2 right-4 left-4 h-16 bg-green-200/30 rounded border border-green-300/50">
+                <div className="p-1 text-xs font-medium text-green-800">NORTH</div>
+                <div className="text-xs text-green-700 px-1">Meditation Hall • Auditorium • Family Quarters</div>
+              </div>
               
-              {/* Crowd Zones */}
-              {crowdZones.map((zone: any) => (
-                <div
-                  key={zone.id}
-                  className={cn(
-                    "absolute w-8 h-8 rounded-full border-2 border-white shadow-lg opacity-80 flex items-center justify-center text-white text-xs font-bold",
-                    getDensityColor(zone.density)
-                  )}
-                  style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
-                  title={`${zone.name}: ${zone.density}%`}
-                >
-                  {zone.density}
-                </div>
-              ))}
+              {/* West Zone */}
+              <div className="absolute top-20 left-4 w-20 h-32 bg-blue-200/30 rounded border border-blue-300/50">
+                <div className="p-1 text-xs font-medium text-blue-800 transform -rotate-90 origin-top-left">WEST</div>
+                <div className="text-xs text-blue-700 px-1 mt-4">Gates • Parking</div>
+              </div>
+              
+              {/* Central Zone */}
+              <div className="absolute top-24 left-26 right-4 h-28 bg-yellow-200/30 rounded border border-yellow-300/50">
+                <div className="p-1 text-xs font-medium text-yellow-800">CENTRAL</div>
+                <div className="text-xs text-yellow-700 px-1">Main Hall • Yatra Garden • Control Tower</div>
+              </div>
+              
+              {/* South Zone */}
+              <div className="absolute bottom-8 left-4 right-4 h-16 bg-orange-200/30 rounded border border-orange-300/50">
+                <div className="p-1 text-xs font-medium text-orange-800">SOUTH</div>
+                <div className="text-xs text-orange-700 px-1">Dining • Sports Complex • Life Sheds</div>
+              </div>
+              
+              {/* East Zone */}
+              <div className="absolute top-20 right-4 w-16 h-40 bg-purple-200/30 rounded border border-purple-300/50">
+                <div className="p-1 text-xs font-medium text-purple-800">EAST</div>
+                <div className="text-xs text-purple-700 px-1 mt-2">Admin • Gym • Row Houses</div>
+              </div>
 
-              {/* Safe Route Path */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                <path
-                  d="M 25 35 Q 40 45 60 40"
-                  stroke="#10b981"
-                  strokeWidth="3"
-                  strokeDasharray="5,5"
-                  fill="none"
-                  className="animate-pulse"
-                />
-                <text x="35" y="50" fill="#10b981" fontSize="10" className="font-medium">
-                  Safe Route
-                </text>
-              </svg>
+              {/* Key Landmarks */}
+              {/* Main Entrance */}
+              <div className="absolute top-24 left-6 w-4 h-4 bg-blue-600 rounded border-2 border-white">
+                <div className="absolute -top-6 -left-8 text-xs font-medium text-blue-800 whitespace-nowrap">Main Gate</div>
+              </div>
+              
+              {/* Meditation Hall */}
+              <div className="absolute top-8 left-1/2 w-4 h-4 bg-green-600 rounded border-2 border-white">
+                <div className="absolute -top-6 -left-8 text-xs font-medium text-green-800 whitespace-nowrap">Meditation Hall</div>
+              </div>
+              
+              {/* Dining Hall */}
+              <div className="absolute bottom-12 left-1/3 w-4 h-4 bg-orange-600 rounded border-2 border-white">
+                <div className="absolute -bottom-6 -left-6 text-xs font-medium text-orange-800 whitespace-nowrap">Dining</div>
+              </div>
+              
+              {/* Emergency Exits */}
+              <div className="absolute top-32 right-8 w-3 h-3 bg-red-500 rounded border border-white">
+                <div className="absolute -top-5 -left-4 text-xs text-red-600">Exit A</div>
+              </div>
+              <div className="absolute bottom-16 left-8 w-3 h-3 bg-red-500 rounded border border-white">
+                <div className="absolute -bottom-5 -left-4 text-xs text-red-600">Exit B</div>
+              </div>
+            </div>
+
+            {/* Current Location */}
+            <div 
+              className="absolute w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-lg z-20 flex items-center justify-center"
+              style={{ left: `${currentLocation.x}%`, top: `${currentLocation.y}%` }}
+            >
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <div className="absolute -top-8 -left-8 bg-blue-500 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                You are here
+              </div>
+            </div>
+            
+            {/* Crowd Density Zones */}
+            {crowdZones.map((zone: any) => (
+              <div
+                key={zone.id}
+                className={cn(
+                  "absolute w-8 h-8 rounded-full border-2 border-white shadow-lg opacity-90 flex items-center justify-center text-white text-xs font-bold z-10",
+                  getDensityColor(zone.density)
+                )}
+                style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
+                title={`${zone.name}: ${zone.density}% capacity`}
+              >
+                {zone.density}
+              </div>
+            ))}
+
+            {/* Safe Route Path */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-5">
+              <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                        refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+                </marker>
+              </defs>
+              <path
+                d={`M ${currentLocation.x * 3.2} ${currentLocation.y * 3.2} Q ${(currentLocation.x + 20) * 3.2} ${(currentLocation.y + 10) * 3.2} ${60 * 3.2} ${40 * 3.2}`}
+                stroke="#10b981"
+                strokeWidth="3"
+                strokeDasharray="8,4"
+                fill="none"
+                markerEnd="url(#arrowhead)"
+                className="animate-pulse"
+              />
+              <text x={`${(currentLocation.x + 15) * 3.2}`} y={`${(currentLocation.y + 15) * 3.2}`} 
+                    fill="#10b981" fontSize="12" className="font-medium">
+                Recommended Route
+              </text>
+            </svg>
+
+            {/* Live Updates Indicator */}
+            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              LIVE
             </div>
           </div>
 
@@ -424,10 +502,14 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
           {aiAnalysis && (
             <div className="mt-3 p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm">Your Area: Main Entrance</span>
+                <span className="font-medium text-sm">Your Area: Main Gate (West)</span>
                 {(() => {
+             cursor/adapt-admin-exit-status-for-mobile-app-c749
                   const currentZone = aiAnalysis.crowdDensity?.find((zone: any) => 
                     zone.zoneName?.includes('Entrance')
+                  const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
+                    zone.zoneName.includes('Gate') || zone.zoneName.includes('Entrance')
+                  main
                   );
                   return currentZone ? (
                     <Badge variant={
@@ -454,50 +536,105 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
           )}
 
           {/* Legend - Use admin-configured thresholds */}
-          <div className="flex flex-wrap gap-3 mt-3 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>Low (&lt;{alertThresholds?.low || 40}%)</span>
+          <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+            <div className="space-y-1">
+              <div className="font-medium">Crowd Density:</div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>Low (&lt;{alertThresholds?.low || 40}%)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span>Medium ({alertThresholds?.low || 40}-{alertThresholds?.medium || 65}%)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span>High ({alertThresholds?.medium || 65}-{alertThresholds?.high || 85}%)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-destructive rounded-full"></div>
+                <span>Critical (&gt;{alertThresholds?.high || 85}%)</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span>Medium ({alertThresholds?.low || 40}-{alertThresholds?.medium || 65}%)</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span>High ({alertThresholds?.medium || 65}-{alertThresholds?.high || 85}%)</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-destructive rounded-full"></div>
-              <span>Critical (&gt;{alertThresholds?.high || 85}%)</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>Your Location</span>
+            <div className="space-y-1">
+              <div className="font-medium">Map Elements:</div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Your Location</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-600 rounded"></div>
+                <span>Key Landmarks</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                <span>Emergency Exits</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-green-500 rounded" style={{background: 'repeating-linear-gradient(90deg, #10b981 0, #10b981 8px, transparent 8px, transparent 12px)'}}></div>
+                <span>Safe Route</span>
+              </div>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Zone Status */}
+      {/* Interactive Zone Information */}
       <Card>
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Zone Status
+            Zone Status & Information
           </h3>
           <div className="space-y-2">
             {crowdZones.map((zone: any) => (
-              <div key={zone.id} className="flex items-center justify-between p-3 rounded border">
-                <span className="text-sm font-medium">{zone.name}</span>
+              <div key={zone.id} className="flex items-center justify-between p-3 rounded border hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-4 h-4 rounded-full", getDensityColor(zone.density))}></div>
+                  <div>
+                    <span className="text-sm font-medium">{zone.name}</span>
+                    <div className="text-xs text-muted-foreground">Tap for directions</div>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{zone.density}%</span>
                   <Badge variant={getStatusColor(zone.status)} className="text-xs">
                     {zone.status}
                   </Badge>
+                  <Button size="sm" variant="ghost" className="h-6 px-2">
+                    <Navigation className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <div className="p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Route className="h-4 w-4" />
+            Quick Navigation
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" className="justify-start">
+              <MapPin className="w-4 h-4 mr-2" />
+              Nearest Exit
+            </Button>
+            <Button variant="outline" size="sm" className="justify-start">
+              <Users className="w-4 h-4 mr-2" />
+              Less Crowded Area
+            </Button>
+            <Button variant="outline" size="sm" className="justify-start">
+              <Navigation className="w-4 h-4 mr-2" />
+              Dining Hall
+            </Button>
+            <Button variant="outline" size="sm" className="justify-start">
+              <Shield className="w-4 h-4 mr-2" />
+              Medical Center
+            </Button>
           </div>
         </div>
       </Card>
