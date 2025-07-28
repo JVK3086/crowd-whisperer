@@ -9,6 +9,9 @@ import { useAIAnalysis, useAlertManager } from '../hooks/useAIAnalysis';
 import { CrowdHeatmap } from '../components/ai/CrowdHeatmap';
 import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
 import { AIInsights } from '../components/ai/AIInsights';
+import { InteractiveCrowdMap } from '../components/ai/InteractiveCrowdMap';
+import { realTimeService } from '../services/realTimeService';
+import { emergencyManagementService } from '../services/emergencyManagement';
 import { 
   Shield, 
   Users, 
@@ -153,8 +156,9 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="interactive">Interactive Map</TabsTrigger>
             <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
             <TabsTrigger value="alerts">Alert Management</TabsTrigger>
             <TabsTrigger value="controls">System Controls</TabsTrigger>
@@ -197,6 +201,10 @@ const AdminDashboard = () => {
                 onDismiss={dismissAlert}
               />
             )}
+          </TabsContent>
+
+          <TabsContent value="interactive" className="space-y-6">
+            <InteractiveCrowdMap />
           </TabsContent>
 
           <TabsContent value="monitoring" className="space-y-6">
