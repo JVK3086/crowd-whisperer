@@ -3,9 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAIAnalysis } from '../hooks/useAIAnalysis';
+import { useMobileSettings } from '../hooks/useSettings';
 import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
+import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
+import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { realTimeService } from '../services/realTimeService';
 import { 
   MapPin, 
@@ -44,13 +48,37 @@ const mockNotifications = [
 const MobileApp = () => {
   const [currentLocation, setCurrentLocation] = useState({ x: 25, y: 35 });
   const [isOnline, setIsOnline] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [activeTab, setActiveTab] = useState('map');
   const [notifications, setNotifications] = useState(mockNotifications);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
   
-  // AI Analysis for real-time crowd data
-  const { data: aiAnalysis, loading: aiLoading } = useAIAnalysis(15000);
+  // Get mobile settings from admin configuration
+  const {
+    mobileSettings,
+    emergencySettings,
+    alertThresholds,
+    activeAnnouncements,
+    loading: settingsLoading,
+    error: settingsError,
+    isFeatureEnabled,
+    mapRefreshInterval,
+    defaultLanguage,
+    supportedLanguages,
+    isPanicButtonEnabled,
+    isLocationTrackingEnabled
+  } = useMobileSettings();
+
+  const [selectedLanguage, setSelectedLanguage] = useState(defaultLanguage || 'en');
+  const [isOfflineMode, setIsOfflineMode] = useState(!mobileSettings?.offlineModeEnabled);
+  
+  // AI Analysis for real-time crowd data - use admin-configured refresh interval
+  const { data: aiAnalysis, loading: aiLoading } = useAIAnalysis(mapRefreshInterval || 15000);
+
+  // Sync language with admin settings
+  useEffect(() => {
+    if (defaultLanguage && selectedLanguage !== defaultLanguage) {
+      setSelectedLanguage(defaultLanguage);
+    }
+  }, [defaultLanguage, selectedLanguage]);
 
   // Real-time connection status
   useEffect(() => {
@@ -58,8 +86,8 @@ const MobileApp = () => {
       const connected = realTimeService.getConnectionStatus();
       setIsOnline(connected);
       
-      // If offline, enable offline mode
-      if (!connected && !isOfflineMode) {
+      // If offline and offline mode is disabled by admin, show warning
+      if (!connected && !mobileSettings?.offlineModeEnabled) {
         setIsOfflineMode(true);
       }
     };
@@ -68,7 +96,7 @@ const MobileApp = () => {
     const interval = setInterval(checkConnection, 5000);
     
     return () => clearInterval(interval);
-  }, [isOfflineMode]);
+  }, [mobileSettings?.offlineModeEnabled]);
 
   const getDensityColor = (density: number) => {
     if (density >= 80) return 'bg-destructive';
@@ -86,8 +114,55 @@ const MobileApp = () => {
     }
   };
 
+  // Show loading state while settings are loading
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Loading system configuration...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if settings failed to load
+  if (settingsError) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <Alert className="border-destructive">
+          <AlertTriangle className="w-4 h-4" />
+          <AlertDescription>
+            Failed to load system settings: {settingsError}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
+      {/* Gate Status Notifications */}
+      <GateStatusNotification 
+        maxNotifications={2}
+        autoHideDelay={6000}
+        className="top-16"
+      />
+
+      {/* Admin Announcements */}
+      {activeAnnouncements.length > 0 && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
+          {activeAnnouncements.slice(0, 1).map(announcement => (
+            <Alert key={announcement.id} className="border-blue-200 bg-transparent p-2">
+              <Bell className="w-4 h-4" />
+              <AlertDescription className="text-blue-800">
+                <strong>{announcement.title}:</strong> {announcement.message}
+              </AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
@@ -98,6 +173,11 @@ const MobileApp = () => {
               <Badge variant="secondary" className="text-xs">
                 <Download className="w-3 h-3 mr-1" />
                 Offline
+              </Badge>
+            )}
+            {!isFeatureEnabled('realTimeUpdatesEnabled') && (
+              <Badge variant="destructive" className="text-xs">
+                Updates Disabled
               </Badge>
             )}
           </div>
@@ -111,21 +191,23 @@ const MobileApp = () => {
             ) : (
               <WifiOff className="h-4 w-4 text-destructive" />
             )}
-            <select 
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="bg-background border rounded px-2 py-1 text-xs"
-            >
-              <option value="en">EN</option>
-              <option value="hi">हि</option>
-              <option value="te">తె</option>
-              <option value="ta">த</option>
-            </select>
+            {supportedLanguages && supportedLanguages.length > 1 && (
+              <select 
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="bg-background border rounded px-2 py-1 text-xs"
+              >
+                {supportedLanguages.includes('en') && <option value="en">EN</option>}
+                {supportedLanguages.includes('hi') && <option value="hi">हि</option>}
+                {supportedLanguages.includes('te') && <option value="te">తె</option>}
+                {supportedLanguages.includes('ta') && <option value="ta">த</option>}
+              </select>
+            )}
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
-              {notifications.length > 0 && (
+              {(notifications.length + activeAnnouncements.length) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {notifications.length}
+                  {notifications.length + activeAnnouncements.length}
                 </span>
               )}
             </Button>
@@ -136,13 +218,17 @@ const MobileApp = () => {
       {/* Main Content with Tabs */}
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="map" className="flex items-center gap-1">
               <Map className="w-4 h-4" />
               <span className="hidden sm:inline">Map</span>
             </TabsTrigger>
-            <TabsTrigger value="navigate" className="flex items-center gap-1">
+            <TabsTrigger value="gates" className="flex items-center gap-1">
               <Navigation className="w-4 h-4" />
+              <span className="hidden sm:inline">Gates</span>
+            </TabsTrigger>
+            <TabsTrigger value="navigate" className="flex items-center gap-1">
+              <Route className="w-4 h-4" />
               <span className="hidden sm:inline">Navigate</span>
             </TabsTrigger>
             <TabsTrigger value="emergency" className="flex items-center gap-1">
@@ -156,6 +242,34 @@ const MobileApp = () => {
           </TabsList>
 
           <TabsContent value="map" className="mt-6 space-y-4">
+            {/* Quick Gate Status */}
+            <Card className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium">Gate Status</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>2 Entrances Open</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>1 Exit Open</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveTab('gates')}
+                    className="text-xs h-6 px-2"
+                  >
+                    View All
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             <LiveCrowdMap 
               crowdZones={crowdZones}
               currentLocation={currentLocation}
@@ -163,17 +277,61 @@ const MobileApp = () => {
               aiLoading={aiLoading}
               getDensityColor={getDensityColor}
               getStatusColor={getStatusColor}
+              alertThresholds={alertThresholds}
+              isFeatureEnabled={isFeatureEnabled}
+            />
+          </TabsContent>
+
+          <TabsContent value="gates" className="mt-6">
+            <EntranceExitStatus 
+              refreshInterval={mapRefreshInterval}
+              showThroughput={isFeatureEnabled('realTimeUpdatesEnabled')}
+              showEmergencyExits={emergencySettings?.emergencyExitsVisible !== false}
             />
           </TabsContent>
 
           <TabsContent value="navigate" className="mt-6">
-            <SafeNavigation />
+            {isFeatureEnabled('routeOptimizationEnabled') ? (
+              <SafeNavigation />
+            ) : (
+              <Card className="p-6">
+                <Alert>
+                  <Navigation className="w-4 h-4" />
+                  <AlertDescription>
+                    Route optimization has been disabled by system administrator.
+                  </AlertDescription>
+                </Alert>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="emergency" className="mt-6">
             <div className="space-y-6">
-              <PanicButton />
-              <EmergencyContacts />
+              {isPanicButtonEnabled ? (
+                <PanicButton />
+              ) : (
+                <Card className="p-6">
+                  <Alert>
+                    <Shield className="w-4 h-4" />
+                    <AlertDescription>
+                      Emergency panic button has been disabled by system administrator.
+                    </AlertDescription>
+                  </Alert>
+                </Card>
+              )}
+              
+              {emergencySettings?.emergencyContactsVisible ? (
+                <EmergencyContacts />
+              ) : (
+                <Card className="p-6">
+                  <Alert>
+                    <Phone className="w-4 h-4" />
+                    <AlertDescription>
+                      Emergency contacts are currently not available.
+                    </AlertDescription>
+                  </Alert>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -181,6 +339,8 @@ const MobileApp = () => {
             <NotificationCenter 
               notifications={notifications}
               aiAnalysis={aiAnalysis}
+              activeAnnouncements={activeAnnouncements}
+              isFeatureEnabled={isFeatureEnabled}
             />
           </TabsContent>
         </Tabs>
@@ -190,7 +350,21 @@ const MobileApp = () => {
 };
 
 // Live Crowd Map Component
-const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor }: any) => {
+const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled }: any) => {
+  // Don't show map if feature is disabled
+  if (!isFeatureEnabled('crowdHeatmapEnabled')) {
+    return (
+      <Card className="p-6">
+        <Alert>
+          <Map className="w-4 h-4" />
+          <AlertDescription>
+            Crowd heatmap has been disabled by system administrator.
+          </AlertDescription>
+        </Alert>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* AI-Powered Live Crowd Map */}
@@ -279,23 +453,23 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
             </div>
           )}
 
-          {/* Legend */}
+          {/* Legend - Use admin-configured thresholds */}
           <div className="flex flex-wrap gap-3 mt-3 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>Low (&lt;40%)</span>
+              <span>Low (&lt;{alertThresholds?.low || 40}%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span>Medium (40-60%)</span>
+              <span>Medium ({alertThresholds?.low || 40}-{alertThresholds?.medium || 65}%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span>High (60-80%)</span>
+              <span>High ({alertThresholds?.medium || 65}-{alertThresholds?.high || 85}%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-destructive rounded-full"></div>
-              <span>Critical (&gt;80%)</span>
+              <span>Critical (&gt;{alertThresholds?.high || 85}%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -367,9 +541,57 @@ const EmergencyContacts = () => {
 };
 
 // Notification Center Component
-const NotificationCenter = ({ notifications, aiAnalysis }: any) => {
+const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, isFeatureEnabled }: any) => {
   return (
     <div className="space-y-4">
+      {/* Admin Announcements */}
+      {activeAnnouncements && activeAnnouncements.length > 0 && (
+        <Card>
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              System Announcements
+            </h3>
+            <div className="space-y-3">
+              {activeAnnouncements.map((announcement: any) => (
+                <div key={announcement.id} className={cn(
+                  "p-3 rounded border",
+                  announcement.type === 'emergency' ? "bg-red-50 border-red-200" :
+                  announcement.type === 'warning' ? "bg-yellow-50 border-yellow-200" :
+                  announcement.type === 'maintenance' ? "bg-orange-50 border-orange-200" :
+                  "bg-blue-50 border-blue-200"
+                )}>
+                  <div className="flex items-start gap-2">
+                    <Bell className={cn(
+                      "h-4 w-4 mt-0.5 flex-shrink-0",
+                      announcement.type === 'emergency' ? "text-red-500" :
+                      announcement.type === 'warning' ? "text-yellow-500" :
+                      announcement.type === 'maintenance' ? "text-orange-500" :
+                      "text-blue-500"
+                    )} />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{announcement.title}</h4>
+                      <p className="text-sm mt-1">{announcement.message}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={announcement.type === 'emergency' ? 'destructive' : 'secondary'} className="text-xs">
+                          {announcement.type}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {announcement.priority}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(announcement.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Card>
         <div className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
@@ -393,43 +615,56 @@ const NotificationCenter = ({ notifications, aiAnalysis }: any) => {
       </Card>
 
       {/* AI-Powered Alerts */}
-      <Card>
-        <div className="p-4">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            AI Safety Alerts
-          </h3>
-          <div className="space-y-2">
-            {aiAnalysis && aiAnalysis.predictiveAlerts.length > 0 ? (
-              aiAnalysis.predictiveAlerts.slice(0, 3).map((alert: any) => (
-                <div key={alert.id} className="p-3 rounded border bg-muted/50">
+      {isFeatureEnabled('aiPredictionsEnabled') ? (
+        <Card>
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              AI Safety Alerts
+            </h3>
+            <div className="space-y-2">
+              {aiAnalysis && aiAnalysis.predictiveAlerts.length > 0 ? (
+                aiAnalysis.predictiveAlerts.slice(0, 3).map((alert: any) => (
+                  <div key={alert.id} className="p-3 rounded border bg-muted/50">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                        alert.severity === 'emergency' ? 'text-red-500' : 'text-orange-500'
+                      }`} />
+                      <div className="flex-1">
+                        <p className="text-sm">{alert.message}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Confidence: {(alert.confidence * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 rounded border bg-green-50 dark:bg-green-950">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                      alert.severity === 'emergency' ? 'text-red-500' : 'text-orange-500'
-                    }`} />
+                    <Shield className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-sm">{alert.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Confidence: {(alert.confidence * 100).toFixed(1)}%
-                      </p>
+                      <p className="text-sm">All clear! No safety concerns detected.</p>
+                      <p className="text-xs text-muted-foreground mt-1">AI monitoring active</p>
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="p-3 rounded border bg-green-50 dark:bg-green-950">
-                <div className="flex items-start gap-2">
-                  <Shield className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm">All clear! No safety concerns detected.</p>
-                    <p className="text-xs text-muted-foreground mt-1">AI monitoring active</p>
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        <Card>
+          <div className="p-4">
+            <Alert>
+              <Activity className="w-4 h-4" />
+              <AlertDescription>
+                AI predictions have been disabled by system administrator.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
