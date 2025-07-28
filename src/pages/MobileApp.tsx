@@ -154,7 +154,7 @@ const MobileApp = () => {
       />
 
       {/* Admin Announcements */}
-      {activeAnnouncements && activeAnnouncements.length > 0 && (
+      {activeAnnouncements.length > 0 && (
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
           {activeAnnouncements.slice(0, 1).map(announcement => (
             <Alert key={announcement.id} className="border-blue-200 bg-transparent p-2">
@@ -209,9 +209,9 @@ const MobileApp = () => {
             )}
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
-              {(notifications.length + (activeAnnouncements?.length || 0)) > 0 && (
+              {(notifications.length + activeAnnouncements.length) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {notifications.length + (activeAnnouncements?.length || 0)}
+                  {notifications.length + activeAnnouncements.length}
                 </span>
               )}
             </Button>
@@ -343,7 +343,7 @@ const MobileApp = () => {
             <NotificationCenter 
               notifications={notifications}
               aiAnalysis={aiAnalysis}
-              activeAnnouncements={activeAnnouncements || []}
+              activeAnnouncements={activeAnnouncements}
               isFeatureEnabled={isFeatureEnabled}
             />
           </TabsContent>
@@ -504,12 +504,8 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">Your Area: Main Gate (West)</span>
                 {(() => {
-             cursor/adapt-admin-exit-status-for-mobile-app-c749
-                  const currentZone = aiAnalysis.crowdDensity?.find((zone: any) => 
-                    zone.zoneName?.includes('Entrance')
                   const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
                     zone.zoneName.includes('Gate') || zone.zoneName.includes('Entrance')
-                  main
                   );
                   return currentZone ? (
                     <Badge variant={
@@ -517,18 +513,18 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
                       currentZone.riskLevel === 'high' ? 'destructive' :
                       currentZone.riskLevel === 'medium' ? 'secondary' : 'default'
                     } className="text-xs">
-                      {currentZone.riskLevel?.toUpperCase()}
+                      {currentZone.riskLevel.toUpperCase()}
                     </Badge>
                   ) : null;
                 })()}
               </div>
               {(() => {
-                const currentZone = aiAnalysis.crowdDensity?.find((zone: any) => 
-                  zone.zoneName?.includes('Entrance')
+                const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
+                  zone.zoneName.includes('Entrance')
                 );
                 return currentZone && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    AI Analysis: {currentZone.utilizationPercentage?.toFixed(1)}% capacity utilized
+                    AI Analysis: {currentZone.utilizationPercentage.toFixed(1)}% capacity utilized
                   </p>
                 );
               })()}
@@ -760,7 +756,7 @@ const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, is
               AI Safety Alerts
             </h3>
             <div className="space-y-2">
-              {aiAnalysis && aiAnalysis.predictiveAlerts && aiAnalysis.predictiveAlerts.length > 0 ? (
+              {aiAnalysis && aiAnalysis.predictiveAlerts.length > 0 ? (
                 aiAnalysis.predictiveAlerts.slice(0, 3).map((alert: any) => (
                   <div key={alert.id} className="p-3 rounded border bg-muted/50">
                     <div className="flex items-start gap-2">
