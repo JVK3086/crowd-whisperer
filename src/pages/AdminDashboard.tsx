@@ -11,6 +11,7 @@ import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
 import { AIInsights } from '../components/ai/AIInsights';
 import { InteractiveCrowdMap } from '../components/ai/InteractiveCrowdMap';
 import { SettingsPanel } from '../components/admin/SettingsPanel';
+import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
 import { 
@@ -51,10 +52,12 @@ const alerts = [
 ];
 
 const gates = [
-  { id: 1, name: "Gate A", status: "open", throughput: 45 },
-  { id: 2, name: "Gate B", status: "closed", throughput: 0 },
-  { id: 3, name: "Gate C", status: "open", throughput: 32 },
-  { id: 4, name: "Emergency Exit 1", status: "closed", throughput: 0 },
+  { id: "main-entrance", name: "Main Entrance", type: "entrance", status: "open", throughput: 45, location: "North Side" },
+  { id: "south-entrance", name: "South Entrance", type: "entrance", status: "open", throughput: 32, location: "South Side" },
+  { id: "exit-gate-a", name: "Exit Gate A", type: "exit", status: "open", throughput: 38, location: "East Side" },
+  { id: "exit-gate-b", name: "Exit Gate B", type: "exit", status: "closed", throughput: 0, location: "West Side" },
+  { id: "emergency-exit-1", name: "Emergency Exit 1", type: "emergency_exit", status: "closed", throughput: 0, location: "North Wing" },
+  { id: "emergency-exit-2", name: "Emergency Exit 2", type: "emergency_exit", status: "closed", throughput: 0, location: "South Wing" },
 ];
 
 const AdminDashboard = () => {
@@ -99,9 +102,14 @@ const AdminDashboard = () => {
     setTimeout(() => setRefreshing(false), 2000);
   };
 
-  const toggleGate = (gateId: number) => {
-    // Simulate gate control
-    console.log(`Toggling gate ${gateId}`);
+  const toggleGate = (gateId: string) => {
+    // Send gate control command via real-time service
+    const gate = gates.find(g => g.id === gateId);
+    if (gate) {
+      const newAction = gate.status === 'open' ? 'close' : 'open';
+      realTimeService.sendGateControl(gateId, newAction);
+      console.log(`Toggling gate ${gateId} to ${newAction}`);
+    }
   };
 
   const broadcastAlert = () => {
@@ -111,6 +119,12 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Gate Status Notifications */}
+      <GateStatusNotification 
+        maxNotifications={3}
+        autoHideDelay={5000}
+      />
+
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
@@ -322,17 +336,22 @@ const AdminDashboard = () => {
                         <div>
                           <div className="font-medium">{gate.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            Throughput: {gate.throughput} people/min
+                            {gate.location} • {gate.type.replace('_', ' ')} • Throughput: {gate.throughput} people/min
                           </div>
                         </div>
                       </div>
-                      <Button
-                        onClick={() => toggleGate(gate.id)}
-                        variant={gate.status === 'open' ? 'destructive' : 'default'}
-                        size="sm"
-                      >
-                        {gate.status === 'open' ? 'Close' : 'Open'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={gate.type === 'emergency_exit' ? 'destructive' : 'outline'} className="text-xs">
+                          {gate.type.replace('_', ' ')}
+                        </Badge>
+                        <Button
+                          onClick={() => toggleGate(gate.id)}
+                          variant={gate.status === 'open' ? 'destructive' : 'default'}
+                          size="sm"
+                        >
+                          {gate.status === 'open' ? 'Close' : 'Open'}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -345,6 +364,22 @@ const AdminDashboard = () => {
                   <Button onClick={broadcastAlert} className="w-full" variant="destructive">
                     <Megaphone className="h-4 w-4 mr-2" />
                     Emergency Broadcast
+                  </Button>
+                  <Button 
+                    onClick={() => emergencyManagementService.activateEmergencyGateProtocol('critical')}
+                    className="w-full" 
+                    variant="destructive"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Emergency Gate Protocol
+                  </Button>
+                  <Button 
+                    onClick={() => emergencyManagementService.deactivateEmergencyGateProtocol()}
+                    className="w-full" 
+                    variant="outline"
+                  >
+                    <Unlock className="h-4 w-4 mr-2" />
+                    Restore Normal Gates
                   </Button>
                   <Button className="w-full" variant="outline">
                     <Bell className="h-4 w-4 mr-2" />
