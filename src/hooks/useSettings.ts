@@ -41,18 +41,23 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
   useEffect(() => {
     if (!autoSubscribe) return;
 
+    let isMounted = true;
+
     const handleSettingsUpdate = (updatedSettings: SystemSettings) => {
+      if (!isMounted) return;
       setSettings(updatedSettings);
       setLoading(false);
       setError(null);
     };
 
     const handleError = (err: any) => {
+      if (!isMounted) return;
       setError(err.message || 'Failed to load settings');
       setLoading(false);
     };
 
     const handleRealTimeSettingsUpdate = (event: any) => {
+      if (!isMounted) return;
       if (event.type === 'settings_update' && event.data.settings) {
         setSettings(event.data.settings);
       }
@@ -67,16 +72,23 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
 
       // Get initial settings
       const currentSettings = settingsService.getSettings();
-      setSettings(currentSettings);
-      setLoading(false);
+      if (isMounted) {
+        setSettings(currentSettings);
+        setLoading(false);
+      }
 
     } catch (err) {
       handleError(err);
     }
 
     return () => {
-      settingsService.unsubscribe(subscriberId);
-      realTimeService.unsubscribe('settings_update', handleRealTimeSettingsUpdate);
+      isMounted = false;
+      try {
+        settingsService.unsubscribe(subscriberId);
+        realTimeService.unsubscribe('settings_update', handleRealTimeSettingsUpdate);
+      } catch (error) {
+        console.warn('Error during useSettings cleanup:', error);
+      }
     };
   }, [subscriberId, autoSubscribe]);
 
