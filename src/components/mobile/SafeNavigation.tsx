@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,9 +62,9 @@ export const SafeNavigation = ({ className }: SafeNavigationProps) => {
     if (destination) {
       calculateRoutes();
     }
-  }, [destination, currentLocation, calculateRoutes]);
+  }, [destination, currentLocation]);
 
-  const calculateRoutes = useCallback(async () => {
+  const calculateRoutes = async () => {
     setIsCalculating(true);
     
     // Simulate route calculation
@@ -132,7 +132,7 @@ export const SafeNavigation = ({ className }: SafeNavigationProps) => {
     setRoutes(mockRoutes);
     setSelectedRoute(mockRoutes.find(r => r.isRecommended) || mockRoutes[0]);
     setIsCalculating(false);
-  }, [currentLocation, destination]);
+  };
 
   const getCrowdLevelColor = (level: SafeRoute['crowdLevel']) => {
     switch (level) {

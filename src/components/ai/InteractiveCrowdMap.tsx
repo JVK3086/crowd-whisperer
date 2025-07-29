@@ -63,11 +63,11 @@ export const InteractiveCrowdMap = () => {
 
   // Real-time data subscription
   useEffect(() => {
-    const handleCrowdUpdate = (event: { data: { zones?: Array<{ id: string; currentDensity: number; riskLevel?: string }> } }) => {
+    const handleCrowdUpdate = (event: any) => {
       if (event.data.zones) {
         setZones(prevZones => 
           prevZones.map(zone => {
-            const update = event.data.zones!.find((z) => z.id === zone.id);
+            const update = event.data.zones.find((z: any) => z.id === zone.id);
             if (update) {
               const utilizationPercentage = (update.currentDensity / zone.capacity) * 100;
               let status: Zone['status'];
@@ -91,11 +91,11 @@ export const InteractiveCrowdMap = () => {
       }
     };
 
-    const handleGateStatus = (event: { data: { gates?: Array<{ id: string; status: string; throughput: number }> } }) => {
+    const handleGateStatus = (event: any) => {
       if (event.data.gates) {
         setGates(prevGates =>
           prevGates.map(gate => {
-            const update = event.data.gates!.find((g) => g.id === gate.id);
+            const update = event.data.gates.find((g: any) => g.id === gate.id);
             return update ? { ...gate, ...update } : gate;
           })
         );

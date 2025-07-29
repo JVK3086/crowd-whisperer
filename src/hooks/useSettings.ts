@@ -47,7 +47,7 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
       setError(null);
     };
 
-    const handleError = (err: Error) => {
+    const handleError = (err: any) => {
       setError(err.message || 'Failed to load settings');
       setLoading(false);
     };
@@ -57,7 +57,7 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
       settingsService.subscribe(subscriberId, handleSettingsUpdate);
 
       // Also listen for real-time settings updates
-      const handleRealTimeSettingsUpdate = (event: { type: string; data: { settings?: unknown } }) => {
+      const handleRealTimeSettingsUpdate = (event: any) => {
         if (event.type === 'settings_update' && event.data.settings) {
           setSettings(event.data.settings);
         }
@@ -246,7 +246,11 @@ export function useAdminSettings() {
     ...hookResult,
     // Additional admin-specific methods can be added here
     bulkUpdateSettings: async (updates: Partial<SystemSettings>) => {
-      await settingsService.updateSettings(updates, 'admin');
+      try {
+        await settingsService.updateSettings(updates, 'admin');
+      } catch (err) {
+        throw err;
+      }
     }
   };
 }
