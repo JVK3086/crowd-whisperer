@@ -1,6 +1,47 @@
+interface GateData {
+  id: string;
+  name: string;
+  status: 'open' | 'closed' | 'partially_open';
+  throughput: number;
+  capacity: number;
+}
+
+interface CrowdData {
+  zoneId: string;
+  zoneName: string;
+  currentDensity: number;
+  maxCapacity: number;
+  utilizationPercentage: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+}
+
+interface NotificationData {
+  id: string;
+  message: string;
+  type: 'info' | 'warning' | 'emergency';
+  zoneName?: string;
+}
+
+interface SystemStatusData {
+  status: 'online' | 'offline' | 'maintenance';
+  zones: string[];
+  activeAlerts: number;
+}
+
+interface SettingsData {
+  [key: string]: unknown;
+}
+
+type RealTimeEventData = 
+  | { gates: GateData[] }
+  | { crowdDensity: CrowdData[] }
+  | NotificationData
+  | SystemStatusData
+  | SettingsData;
+
 interface RealTimeEvent {
   type: 'crowd_update' | 'emergency_alert' | 'gate_status' | 'notification' | 'system_status' | 'settings_update';
-  data: any;
+  data: RealTimeEventData;
   timestamp: Date;
   priority: 'low' | 'medium' | 'high' | 'critical';
 }

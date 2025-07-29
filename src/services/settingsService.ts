@@ -214,8 +214,8 @@ class SettingsService {
     this.notifySubscribers();
 
     // Broadcast settings change to all connected clients
-    if (typeof window !== 'undefined' && (window as any).realTimeService) {
-      (window as any).realTimeService.emit({
+    if (typeof window !== 'undefined' && (window as unknown as { realTimeService?: { emit: (event: unknown) => void } }).realTimeService) {
+      (window as unknown as { realTimeService: { emit: (event: unknown) => void } }).realTimeService.emit({
         type: 'settings_update',
         data: { settings: newSettings },
         timestamp: new Date(),

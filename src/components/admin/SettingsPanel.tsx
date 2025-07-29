@@ -521,7 +521,7 @@ export const SettingsPanel = () => {
                     <Label>Type</Label>
                     <Select
                       value={newAnnouncement.type}
-                      onValueChange={(value: any) => setNewAnnouncement(prev => ({
+                      onValueChange={(value: string) => setNewAnnouncement(prev => ({
                         ...prev,
                         type: value
                       }))}
@@ -541,7 +541,7 @@ export const SettingsPanel = () => {
                     <Label>Target Audience</Label>
                     <Select
                       value={newAnnouncement.targetAudience}
-                      onValueChange={(value: any) => setNewAnnouncement(prev => ({
+                      onValueChange={(value: string) => setNewAnnouncement(prev => ({
                         ...prev,
                         targetAudience: value
                       }))}
@@ -560,7 +560,7 @@ export const SettingsPanel = () => {
                     <Label>Priority</Label>
                     <Select
                       value={newAnnouncement.priority}
-                      onValueChange={(value: any) => setNewAnnouncement(prev => ({
+                      onValueChange={(value: string) => setNewAnnouncement(prev => ({
                         ...prev,
                         priority: value
                       }))}
@@ -655,7 +655,7 @@ export const SettingsPanel = () => {
                       checked={enabled}
                       onCheckedChange={(checked) => updateFeatureFlags({
                         [feature]: checked
-                      } as any)}
+                      } as Record<string, boolean>)}
                     />
                   </div>
                 ))}

@@ -114,11 +114,11 @@ export const EntranceExitStatus = ({
 
   useEffect(() => {
     // Subscribe to real-time gate status updates
-    const handleGateStatusUpdate = (event: any) => {
+    const handleGateStatusUpdate = (event: { data?: { gates?: Array<{ id: string; name: string; status: string; throughput: number; capacity: number }> } }) => {
       if (event.data && event.data.gates) {
         setGates(prevGates => {
           const updatedGates = [...prevGates];
-          event.data.gates.forEach((serverGate: any) => {
+          event.data.gates!.forEach((serverGate) => {
             const gateIndex = updatedGates.findIndex(g => g.id === serverGate.id);
             if (gateIndex !== -1) {
               updatedGates[gateIndex] = {
@@ -136,7 +136,7 @@ export const EntranceExitStatus = ({
     };
 
     // Subscribe to emergency alerts for gate protocol changes
-    const handleEmergencyAlert = (event: any) => {
+    const handleEmergencyAlert = (event: { data?: { type?: string; openExits?: string[]; closeEntrances?: string[] } }) => {
       if (event.data && event.data.type === 'emergency_gate_protocol') {
         // Update gate statuses based on emergency protocol
         if (event.data.openExits) {

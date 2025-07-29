@@ -354,7 +354,31 @@ const MobileApp = () => {
 };
 
 // Live Crowd Map Component
-const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled }: any) => {
+interface LiveCrowdMapProps {
+  crowdZones: Array<{
+    id: string;
+    name: string;
+    coordinates: { x: number; y: number };
+    capacity: number;
+    current: number;
+    status: string;
+  }>;
+  currentLocation: string;
+  aiAnalysis: {
+    crowdDensity?: Array<{
+      zoneName: string;
+      utilizationPercentage: number;
+      riskLevel: string;
+    }>;
+  } | null;
+  aiLoading: boolean;
+  getDensityColor: (percentage: number) => string;
+  getStatusColor: (status: string) => string;
+  alertThresholds: Record<string, number>;
+  isFeatureEnabled: (feature: string) => boolean;
+}
+
+const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled }: LiveCrowdMapProps) => {
   // Don't show map if feature is disabled
   if (!isFeatureEnabled('crowdHeatmapEnabled')) {
     return (
@@ -454,7 +478,7 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
             </div>
             
             {/* Crowd Density Zones */}
-            {crowdZones.map((zone: any) => (
+            {crowdZones.map((zone) => (
               <div
                 key={zone.id}
                 className={cn(
@@ -504,12 +528,8 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">Your Area: Main Gate (West)</span>
                 {(() => {
-             cursor/adapt-admin-exit-status-for-mobile-app-c749
-                  const currentZone = aiAnalysis.crowdDensity?.find((zone: any) => 
-                    zone.zoneName?.includes('Entrance')
-                  const currentZone = aiAnalysis.crowdDensity.find((zone: any) => 
-                    zone.zoneName.includes('Gate') || zone.zoneName.includes('Entrance')
-                  main
+                  const currentZone = aiAnalysis.crowdDensity?.find((zone) => 
+                    zone.zoneName?.includes('Gate') || zone.zoneName?.includes('Entrance')
                   );
                   return currentZone ? (
                     <Badge variant={
@@ -523,7 +543,7 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
                 })()}
               </div>
               {(() => {
-                const currentZone = aiAnalysis.crowdDensity?.find((zone: any) => 
+                const currentZone = aiAnalysis.crowdDensity?.find((zone) => 
                   zone.zoneName?.includes('Entrance')
                 );
                 return currentZone && (
@@ -587,7 +607,7 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
             Zone Status & Information
           </h3>
           <div className="space-y-2">
-            {crowdZones.map((zone: any) => (
+            {crowdZones.map((zone) => (
               <div key={zone.id} className="flex items-center justify-between p-3 rounded border hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className={cn("w-4 h-4 rounded-full", getDensityColor(zone.density))}></div>
@@ -678,7 +698,31 @@ const EmergencyContacts = () => {
 };
 
 // Notification Center Component
-const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, isFeatureEnabled }: any) => {
+interface NotificationCenterProps {
+  notifications: Array<{
+    id: string;
+    message: string;
+    type: 'info' | 'warning' | 'emergency';
+    timestamp: Date;
+  }>;
+  aiAnalysis: {
+    predictiveAlerts?: Array<{
+      id: string;
+      message: string;
+      confidence: number;
+      severity: string;
+    }>;
+  } | null;
+  activeAnnouncements: Array<{
+    id: string;
+    message: string;
+    type: string;
+    priority: string;
+  }>;
+  isFeatureEnabled: (feature: string) => boolean;
+}
+
+const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, isFeatureEnabled }: NotificationCenterProps) => {
   return (
     <div className="space-y-4">
       {/* Admin Announcements */}
@@ -690,7 +734,7 @@ const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, is
               System Announcements
             </h3>
             <div className="space-y-3">
-              {activeAnnouncements.map((announcement: any) => (
+              {activeAnnouncements.map((announcement) => (
                 <div key={announcement.id} className={cn(
                   "p-3 rounded border",
                   announcement.type === 'emergency' ? "bg-red-50 border-red-200" :
@@ -736,7 +780,7 @@ const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, is
             Safety Notifications
           </h3>
           <div className="space-y-3">
-            {notifications.map((notification: any) => (
+            {notifications.map((notification) => (
               <div key={notification.id} className="p-3 rounded border bg-muted/50">
                 <div className="flex items-start gap-2">
                   <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
@@ -761,7 +805,7 @@ const NotificationCenter = ({ notifications, aiAnalysis, activeAnnouncements, is
             </h3>
             <div className="space-y-2">
               {aiAnalysis && aiAnalysis.predictiveAlerts && aiAnalysis.predictiveAlerts.length > 0 ? (
-                aiAnalysis.predictiveAlerts.slice(0, 3).map((alert: any) => (
+                aiAnalysis.predictiveAlerts.slice(0, 3).map((alert) => (
                   <div key={alert.id} className="p-3 rounded border bg-muted/50">
                     <div className="flex items-start gap-2">
                       <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${

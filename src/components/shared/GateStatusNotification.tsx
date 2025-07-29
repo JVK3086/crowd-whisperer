@@ -38,9 +38,9 @@ export const GateStatusNotification = ({
   const [notifications, setNotifications] = useState<GateStatusChange[]>([]);
 
   useEffect(() => {
-    const handleGateStatusUpdate = (event: any) => {
+    const handleGateStatusUpdate = (event: { data?: { gates?: Array<{ id: string; status: 'open' | 'closed' | 'partially_open' }> } }) => {
       if (event.data && event.data.gates) {
-        event.data.gates.forEach((gate: any) => {
+        event.data.gates.forEach((gate) => {
           // Create a notification for the gate status change
           const notification: GateStatusChange = {
             id: `notification-${Date.now()}-${gate.id}`,
