@@ -1,0 +1,97 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "refresh": "Refresh",
+    "search": "Search",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "mobile": "Mobile App",
+    "admin": "Admin",
+    "home": "Home"
+  },
+  "dashboard": {
+    "title": "Smart Crowd Flow Management System",
+    "subtitle": "Real-time crowd monitoring and safety management",
+    "overview": "System Overview",
+    "alerts": "Active Alerts",
+    "zones": "Zone Status",
+    "analytics": "Analytics"
+  },
+  "mobile": {
+    "title": "SCFMS Mobile",
+    "subtitle": "Your safety companion",
+    "navigation": "Safe Navigation",
+    "panic": "Emergency",
+    "exits": "Emergency Exits",
+    "status": "Entrance Status",
+    "findRoute": "Find Safe Route",
+    "panicButton": "Panic Button",
+    "emergencyContacts": "Emergency Contacts"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "System administration and configuration",
+    "settings": "System Settings",
+    "alerts": "Alert Management",
+    "zones": "Zone Configuration",
+    "users": "User Management",
+    "reports": "Reports",
+    "aiInsights": "AI Insights",
+    "crowdHeatmap": "Crowd Heatmap",
+    "predictiveAlerts": "Predictive Alerts"
+  },
+  "alerts": {
+    "low": "Low Capacity",
+    "medium": "Medium Capacity",
+    "high": "High Capacity", 
+    "critical": "Critical Capacity",
+    "emergency": "Emergency Alert",
+    "evacuation": "Evacuation Required",
+    "crowdDensity": "Crowd Density Alert",
+    "systemAlert": "System Alert"
+  },
+  "zones": {
+    "mainEntrance": "Main Entrance",
+    "foodCourt": "Food Court",
+    "centralHall": "Central Hall",
+    "capacity": "Capacity",
+    "current": "Current",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "emergency": {
+    "panicActivated": "Panic Alert Activated",
+    "evacuationOrder": "Evacuation Order Issued",
+    "emergencyServices": "Emergency Services Notified",
+    "safeRoute": "Safe Route Calculated",
+    "nearestExit": "Nearest Exit",
+    "avoidArea": "Avoid This Area",
+    "followInstructions": "Follow Emergency Instructions"
+  },
+  "settings": {
+    "alertThresholds": "Alert Thresholds",
+    "emergencySettings": "Emergency Settings",
+    "zoneConfiguration": "Zone Configuration",
+    "mobileSettings": "Mobile Settings",
+    "systemAnnouncements": "System Announcements",
+    "featureFlags": "Feature Flags",
+    "language": "Language",
+    "notifications": "Notifications",
+    "privacy": "Privacy"
+  }
+}

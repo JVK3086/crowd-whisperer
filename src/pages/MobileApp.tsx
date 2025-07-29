@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
 import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
 import { GateStatusNotification } from '../components/shared/GateStatusNotification';
+import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
 import { 
   MapPin, 
@@ -50,6 +52,7 @@ const mockNotifications = [
 ];
 
 const MobileApp = () => {
+  const { t } = useTranslation();
   const [currentLocation, setCurrentLocation] = useState({ x: 20, y: 42 }); // Near Main Gate
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState('map');
@@ -172,7 +175,7 @@ const MobileApp = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-semibold">SCFMS Mobile</h1>
+            <h1 className="text-lg font-semibold">{t('mobile.title')}</h1>
             {isOfflineMode && (
               <Badge variant="secondary" className="text-xs">
                 <Download className="w-3 h-3 mr-1" />
@@ -186,6 +189,7 @@ const MobileApp = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <div className={cn(
               "w-2 h-2 rounded-full", 
               isOnline ? "bg-green-400" : "bg-red-400"
@@ -194,18 +198,6 @@ const MobileApp = () => {
               <Wifi className="h-4 w-4 text-green-500" />
             ) : (
               <WifiOff className="h-4 w-4 text-destructive" />
-            )}
-            {supportedLanguages && supportedLanguages.length > 1 && (
-              <select 
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="bg-background border rounded px-2 py-1 text-xs"
-              >
-                {supportedLanguages.includes('en') && <option value="en">EN</option>}
-                {supportedLanguages.includes('hi') && <option value="hi">हि</option>}
-                {supportedLanguages.includes('te') && <option value="te">తె</option>}
-                {supportedLanguages.includes('ta') && <option value="ta">த</option>}
-              </select>
             )}
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />

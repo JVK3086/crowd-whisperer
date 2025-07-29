@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ import { AIInsights } from '../components/ai/AIInsights';
 import { InteractiveCrowdMap } from '../components/ai/InteractiveCrowdMap';
 import { SettingsPanel } from '../components/admin/SettingsPanel';
 import { GateStatusNotification } from '../components/shared/GateStatusNotification';
+import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
 import { 
@@ -61,6 +63,7 @@ const gates = [
 ];
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
@@ -131,11 +134,12 @@ const AdminDashboard = () => {
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold">SCFMS Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Smart Crowd Flow Management System</p>
+              <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('admin.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Button
               onClick={handleRefresh}
               variant="outline"

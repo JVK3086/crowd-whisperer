@@ -1,0 +1,97 @@
+{
+  "common": {
+    "loading": "లోడ్ అవుతోంది...",
+    "error": "లోపం",
+    "success": "విజయం",
+    "cancel": "రద్దు చేయండి",
+    "confirm": "నిర్ధారించండి",
+    "save": "సేవ్ చేయండి",
+    "delete": "తొలగించండి",
+    "edit": "సవరించండి",
+    "close": "మూసివేయండి",
+    "back": "వెనుక",
+    "next": "తదుపరి",
+    "previous": "మునుపటి",
+    "refresh": "రిఫ్రెష్",
+    "search": "వెతకండి",
+    "settings": "సెట్టింగ్‌లు",
+    "language": "భాష"
+  },
+  "nav": {
+    "dashboard": "డాష్‌బోర్డ్",
+    "mobile": "మొబైల్ యాప్",
+    "admin": "అడ్మిన్",
+    "home": "హోమ్"
+  },
+  "dashboard": {
+    "title": "స్మార్ట్ క్రౌడ్ ఫ్లో మేనేజ్‌మెంట్ సిస్టమ్",
+    "subtitle": "రియల్-టైమ్ గుంపు పర్యవేక్షణ మరియు భద్రతా నిర్వహణ",
+    "overview": "సిస్టమ్ అవలోకనం",
+    "alerts": "సక్రియ అలర్ట్‌లు",
+    "zones": "జోన్ స్థితి",
+    "analytics": "విశ్లేషణలు"
+  },
+  "mobile": {
+    "title": "SCFMS మొబైల్",
+    "subtitle": "మీ భద్రతా సహచరుడు",
+    "navigation": "భద్రమైన నావిగేషన్",
+    "panic": "అత్యవసరం",
+    "exits": "అత్యవసర నిష్క్రమణలు",
+    "status": "ప్రవేశ స్థితి",
+    "findRoute": "భద్రమైన మార్గం కనుగొనండి",
+    "panicButton": "పానిక్ బటన్",
+    "emergencyContacts": "అత్యవసర పరిచయాలు"
+  },
+  "admin": {
+    "title": "అడ్మిన్ డాష్‌బోర్డ్",
+    "subtitle": "సిస్టమ్ పరిపాలన మరియు కాన్ఫిగరేషన్",
+    "settings": "సిస్టమ్ సెట్టింగ్‌లు",
+    "alerts": "అలర్ట్ నిర్వహణ",
+    "zones": "జోన్ కాన్ఫిగరేషన్",
+    "users": "వినియోగదారు నిర్వహణ",
+    "reports": "నివేదికలు",
+    "aiInsights": "AI అంతర్దృష్టులు",
+    "crowdHeatmap": "గుంపు హీట్‌మ్యాప్",
+    "predictiveAlerts": "అంచనా అలర్ట్‌లు"
+  },
+  "alerts": {
+    "low": "తక్కువ సామర్థ్యం",
+    "medium": "మధ్యస్థ సామర్థ్యం",
+    "high": "అధిక సామర్థ్యం",
+    "critical": "క్లిష్టమైన సామర్థ్యం",
+    "emergency": "అత్యవసర అలర్ట్",
+    "evacuation": "తరలింపు అవసరం",
+    "crowdDensity": "గుంపు సాంద్రత అలర్ట్",
+    "systemAlert": "సిస్టమ్ అలర్ట్"
+  },
+  "zones": {
+    "mainEntrance": "ప్రధాన ప్రవేశ ద్వారం",
+    "foodCourt": "ఫుడ్ కోర్ట్",
+    "centralHall": "కేంద్ర హాలు",
+    "capacity": "సామర్థ్యం",
+    "current": "ప్రస్తుత",
+    "status": "స్థితి",
+    "active": "సక్రియం",
+    "inactive": "నిష్క్రియం"
+  },
+  "emergency": {
+    "panicActivated": "పానిక్ అలర్ట్ సక్రియం",
+    "evacuationOrder": "తరలింపు ఆర్డర్ జారీ",
+    "emergencyServices": "అత్యవసర సేవలకు తెలియజేయబడింది",
+    "safeRoute": "భద్రమైన మార్గం గణించబడింది",
+    "nearestExit": "సమీప నిష్క్రమణ",
+    "avoidArea": "ఈ ప్రాంతాన్ని తప్పించండి",
+    "followInstructions": "అత్యవసర సూచనలను అనుసరించండి"
+  },
+  "settings": {
+    "alertThresholds": "అలర్ట్ థ్రెషోల్డ్‌లు",
+    "emergencySettings": "అత్యవసర సెట్టింగ్‌లు",
+    "zoneConfiguration": "జోన్ కాన్ఫిగరేషన్",
+    "mobileSettings": "మొబైల్ సెట్టింగ్‌లు",
+    "systemAnnouncements": "సిస్టమ్ ప్రకటనలు",
+    "featureFlags": "ఫీచర్ ఫ్లాగ్‌లు",
+    "language": "భాష",
+    "notifications": "నోటిఫికేషన్‌లు",
+    "privacy": "గోప్యత"
+  }
+}
