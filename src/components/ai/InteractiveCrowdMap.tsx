@@ -18,6 +18,7 @@ import {
 import { realTimeService } from '../../services/realTimeService';
 import { emergencyManagementService } from '../../services/emergencyManagement';
 import { cn } from '@/lib/utils';
+import sampleVenueMap from '@/assets/sample-venue-map.jpg';
 
 interface Zone {
   id: string;
@@ -197,6 +198,14 @@ export const InteractiveCrowdMap = () => {
         {/* Interactive Map */}
         <Card className="lg:col-span-2 p-6">
           <div className="relative bg-gray-50 rounded-lg h-96 overflow-hidden">
+            {/* Background Map */}
+            <img 
+              src={sampleVenueMap} 
+              alt="Venue Floor Plan" 
+              className="absolute inset-0 w-full h-full object-cover rounded-lg"
+            />
+            {/* Overlay for better marker visibility */}
+            <div className="absolute inset-0 bg-black/10 rounded-lg" />
             {/* Zone markers */}
             {zones.map((zone) => (
               <div
