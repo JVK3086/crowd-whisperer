@@ -16,6 +16,7 @@ export interface SystemSettings {
     panicButtonEnabled: boolean;
     autoEvacuationEnabled: boolean;
     emergencyContactsVisible: boolean;
+    emergencyExitsVisible: boolean;
     requirePanicConfirmation: boolean;
     panicConfirmationTimeout: number; // seconds
   };
@@ -94,6 +95,7 @@ class SettingsService {
         panicButtonEnabled: true,
         autoEvacuationEnabled: false,
         emergencyContactsVisible: true,
+        emergencyExitsVisible: true,
         requirePanicConfirmation: true,
         panicConfirmationTimeout: 5
       },

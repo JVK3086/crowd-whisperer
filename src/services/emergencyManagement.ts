@@ -1,3 +1,5 @@
+import { realTimeService } from './realTimeService';
+
 export interface EmergencyAlert {
   id: string;
   type: 'panic_button' | 'evacuation' | 'medical' | 'security';

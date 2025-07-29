@@ -52,17 +52,17 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
       setLoading(false);
     };
 
+    const handleRealTimeSettingsUpdate = (event: any) => {
+      if (event.type === 'settings_update' && event.data.settings) {
+        setSettings(event.data.settings);
+      }
+    };
+
     try {
       // Subscribe to settings updates
       settingsService.subscribe(subscriberId, handleSettingsUpdate);
 
       // Also listen for real-time settings updates
-      const handleRealTimeSettingsUpdate = (event: any) => {
-        if (event.type === 'settings_update' && event.data.settings) {
-          setSettings(event.data.settings);
-        }
-      };
-
       realTimeService.subscribe('settings_update', handleRealTimeSettingsUpdate);
 
       // Get initial settings
