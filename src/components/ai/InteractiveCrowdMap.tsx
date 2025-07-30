@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   AlertTriangle, 
@@ -13,12 +14,16 @@ import {
   Camera,
   Lock,
   Unlock,
-  RefreshCw
+  RefreshCw,
+  Upload,
+  Route as RouteIcon
 } from 'lucide-react';
 import { realTimeService } from '../../services/realTimeService';
 import { emergencyManagementService } from '../../services/emergencyManagement';
 import { cn } from '@/lib/utils';
 import sampleVenueMap from '@/assets/sample-venue-map.jpg';
+import { FloorPlanManager } from '../admin/FloorPlanManager';
+import { EmergencyRouteManager } from '../admin/EmergencyRouteManager';
 
 interface Zone {
   id: string;
@@ -194,206 +199,224 @@ export const InteractiveCrowdMap = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Interactive Map */}
-        <Card className="lg:col-span-2 p-6">
-          <div className="relative bg-gray-50 rounded-lg h-96 overflow-hidden">
-            {/* Background Map */}
-            <img 
-              src={sampleVenueMap} 
-              alt="Venue Floor Plan" 
-              className="absolute inset-0 w-full h-full object-cover rounded-lg"
-            />
-            {/* Overlay for better marker visibility */}
-            <div className="absolute inset-0 bg-black/10 rounded-lg" />
-            {/* Zone markers */}
-            {zones.map((zone) => (
-              <div
-                key={zone.id}
-                className={cn(
-                  "absolute w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110",
-                  getZoneColor(zone.status),
-                  selectedZone?.id === zone.id && "ring-4 ring-blue-300"
-                )}
-                style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
-                onClick={() => setSelectedZone(zone)}
-              >
-                <Users className="w-4 h-4 text-white" />
-                {zone.status === 'critical' && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full animate-pulse" />
-                )}
-              </div>
-            ))}
+      <Tabs defaultValue="live-map" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="live-map">Live Crowd Map</TabsTrigger>
+          <TabsTrigger value="floor-plans">Floor Plan Manager</TabsTrigger>
+          <TabsTrigger value="emergency-routes">Emergency Routes</TabsTrigger>
+        </TabsList>
 
-            {/* Gate markers */}
-            {gates.map((gate) => (
-              <div
-                key={gate.id}
-                className={cn(
-                  "absolute w-6 h-6 rounded-sm flex items-center justify-center",
-                  gate.status === 'open' ? "bg-green-600" : 
-                  gate.status === 'closed' ? "bg-red-600" : "bg-yellow-600"
-                )}
-                style={{ left: `${gate.location.x}%`, top: `${gate.location.y}%` }}
-                title={`${gate.name} - ${gate.status}`}
-              >
-                {gate.status === 'open' ? 
-                  <Unlock className="w-3 h-3 text-white" /> : 
-                  <Lock className="w-3 h-3 text-white" />
-                }
-              </div>
-            ))}
+        <TabsContent value="live-map" className="space-y-6">
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Interactive Map */}
+            <Card className="lg:col-span-2 p-6">
+              <div className="relative bg-gray-50 rounded-lg h-96 overflow-hidden">
+                {/* Background Map */}
+                <img 
+                  src={sampleVenueMap} 
+                  alt="Venue Floor Plan" 
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                />
+                {/* Overlay for better marker visibility */}
+                <div className="absolute inset-0 bg-black/10 rounded-lg" />
+                {/* Zone markers */}
+                {zones.map((zone) => (
+                  <div
+                    key={zone.id}
+                    className={cn(
+                      "absolute w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110",
+                      getZoneColor(zone.status),
+                      selectedZone?.id === zone.id && "ring-4 ring-blue-300"
+                    )}
+                    style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
+                    onClick={() => setSelectedZone(zone)}
+                  >
+                    <Users className="w-4 h-4 text-white" />
+                    {zone.status === 'critical' && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                ))}
 
-            {/* Legend */}
-            <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg">
-              <div className="text-xs font-semibold mb-2">Zone Status</div>
-              <div className="space-y-1 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full" />
-                  <span>Low (&lt;40%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                  <span>Medium (40-65%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full" />
-                  <span>High (65-85%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full" />
-                  <span>Critical (&gt;85%)</span>
+                {/* Gate markers */}
+                {gates.map((gate) => (
+                  <div
+                    key={gate.id}
+                    className={cn(
+                      "absolute w-6 h-6 rounded-sm flex items-center justify-center",
+                      gate.status === 'open' ? "bg-green-600" : 
+                      gate.status === 'closed' ? "bg-red-600" : "bg-yellow-600"
+                    )}
+                    style={{ left: `${gate.location.x}%`, top: `${gate.location.y}%` }}
+                    title={`${gate.name} - ${gate.status}`}
+                  >
+                    {gate.status === 'open' ? 
+                      <Unlock className="w-3 h-3 text-white" /> : 
+                      <Lock className="w-3 h-3 text-white" />
+                    }
+                  </div>
+                ))}
+
+                {/* Legend */}
+                <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg">
+                  <div className="text-xs font-semibold mb-2">Zone Status</div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full" />
+                      <span>Low (&lt;40%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                      <span>Medium (40-65%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full" />
+                      <span>High (65-85%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full" />
+                      <span>Critical (&gt;85%)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Card>
+
+            {/* Zone Details & Controls */}
+            <Card className="p-6">
+              {selectedZone ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">{selectedZone.name}</h4>
+                    <Badge className={getZoneTextColor(selectedZone.status)}>
+                      {selectedZone.status.toUpperCase()}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Occupancy</span>
+                        <span>{selectedZone.current} / {selectedZone.capacity}</span>
+                      </div>
+                      <Progress 
+                        value={getUtilizationPercentage(selectedZone)} 
+                        className="h-2"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {getUtilizationPercentage(selectedZone)}% capacity
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="text-muted-foreground">Trend</div>
+                        <div className="font-medium">
+                          {getTrendIcon(selectedZone.trend)} {selectedZone.trend}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Cameras</div>
+                        <div className="font-medium flex items-center gap-1">
+                          <Camera className="w-3 h-3" />
+                          {selectedZone.cameras}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t">
+                      <div className="text-sm text-muted-foreground mb-2">Emergency Controls</div>
+                      <div className="space-y-2">
+                        {selectedZone.status === 'critical' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleEmergencyEvacuation(selectedZone.id)}
+                          >
+                            <AlertTriangle className="w-4 h-4 mr-2" />
+                            Trigger Evacuation
+                          </Button>
+                        )}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            realTimeService.sendBroadcastMessage(
+                              `High crowd density detected in ${selectedZone.name}. Please use alternate routes.`,
+                              [selectedZone.id]
+                            );
+                          }}
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          Send Alert
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+                      Last updated: {selectedZone.lastUpdated.toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <MapPin className="w-8 h-8 mx-auto mb-2" />
+                  <p>Click on a zone to view details and controls</p>
+                </div>
+              )}
+            </Card>
           </div>
-        </Card>
 
-        {/* Zone Details & Controls */}
-        <Card className="p-6">
-          {selectedZone ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">{selectedZone.name}</h4>
-                <Badge className={getZoneTextColor(selectedZone.status)}>
-                  {selectedZone.status.toUpperCase()}
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Occupancy</span>
-                    <span>{selectedZone.current} / {selectedZone.capacity}</span>
-                  </div>
-                  <Progress 
-                    value={getUtilizationPercentage(selectedZone)} 
-                    className="h-2"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {getUtilizationPercentage(selectedZone)}% capacity
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
+          {/* Gate Controls */}
+          <Card className="p-6">
+            <h4 className="font-semibold mb-4">Gate Controls</h4>
+            <div className="grid md:grid-cols-3 gap-4">
+              {gates.map((gate) => (
+                <div key={gate.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
-                    <div className="text-muted-foreground">Trend</div>
-                    <div className="font-medium">
-                      {getTrendIcon(selectedZone.trend)} {selectedZone.trend}
+                    <div className="font-medium">{gate.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Throughput: {gate.throughput}/min
                     </div>
                   </div>
-                  <div>
-                    <div className="text-muted-foreground">Cameras</div>
-                    <div className="font-medium flex items-center gap-1">
-                      <Camera className="w-3 h-3" />
-                      {selectedZone.cameras}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t">
-                  <div className="text-sm text-muted-foreground mb-2">Emergency Controls</div>
-                  <div className="space-y-2">
-                    {selectedZone.status === 'critical' && (
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={gate.status === 'open' ? 'default' : 'secondary'}
+                      className={cn(
+                        gate.status === 'open' && 'bg-green-100 text-green-800',
+                        gate.status === 'closed' && 'bg-red-100 text-red-800',
+                        gate.status === 'maintenance' && 'bg-yellow-100 text-yellow-800'
+                      )}
+                    >
+                      {gate.status}
+                    </Badge>
+                    {gate.status !== 'maintenance' && (
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         size="sm"
-                        className="w-full"
-                        onClick={() => handleEmergencyEvacuation(selectedZone.id)}
+                        onClick={() => handleGateControl(gate.id, gate.status === 'open' ? 'close' : 'open')}
                       >
-                        <AlertTriangle className="w-4 h-4 mr-2" />
-                        Trigger Evacuation
+                        {gate.status === 'open' ? 'Close' : 'Open'}
                       </Button>
                     )}
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        realTimeService.sendBroadcastMessage(
-                          `High crowd density detected in ${selectedZone.name}. Please use alternate routes.`,
-                          [selectedZone.id]
-                        );
-                      }}
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Send Alert
-                    </Button>
                   </div>
                 </div>
+              ))}
+            </div>
+          </Card>
+        </TabsContent>
 
-                <div className="text-xs text-muted-foreground">
-                  Last updated: {selectedZone.lastUpdated.toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              <MapPin className="w-8 h-8 mx-auto mb-2" />
-              <p>Click on a zone to view details and controls</p>
-            </div>
-          )}
-        </Card>
-      </div>
+        <TabsContent value="floor-plans">
+          <FloorPlanManager />
+        </TabsContent>
 
-      {/* Gate Controls */}
-      <Card className="p-6">
-        <h4 className="font-semibold mb-4">Gate Controls</h4>
-        <div className="grid md:grid-cols-3 gap-4">
-          {gates.map((gate) => (
-            <div key={gate.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <div className="font-medium">{gate.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  Throughput: {gate.throughput}/min
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant={gate.status === 'open' ? 'default' : 'secondary'}
-                  className={cn(
-                    gate.status === 'open' && 'bg-green-100 text-green-800',
-                    gate.status === 'closed' && 'bg-red-100 text-red-800',
-                    gate.status === 'maintenance' && 'bg-yellow-100 text-yellow-800'
-                  )}
-                >
-                  {gate.status}
-                </Badge>
-                {gate.status !== 'maintenance' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleGateControl(gate.id, gate.status === 'open' ? 'close' : 'open')}
-                  >
-                    {gate.status === 'open' ? 'Close' : 'Open'}
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+        <TabsContent value="emergency-routes">
+          <EmergencyRouteManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
