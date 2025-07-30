@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import MobileApp from "./pages/MobileApp";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import "./i18n";
 
 const queryClient = new QueryClient();
 
