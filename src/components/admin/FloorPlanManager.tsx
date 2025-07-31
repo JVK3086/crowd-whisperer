@@ -20,49 +20,27 @@ import {
   Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useFloorPlan, Gate as FloorPlanGate, EmergencyRoute as FloorPlanRoute } from '@/hooks/useFloorPlan';
 
-interface FloorPlan {
+// Local gate interface for UI state
+interface LocalGate {
   id: string;
   name: string;
-  imageUrl: string;
-  uploadedAt: Date;
-  gates: Gate[];
-  emergencyRoutes: EmergencyRoute[];
-}
-
-interface Gate {
-  id: string;
-  name: string;
-  type: 'entrance' | 'exit' | 'emergency_exit' | 'bidirectional';
-  position: { x: number; y: number };
-  status: 'active' | 'inactive' | 'maintenance';
-  capacity: number;
-  isEmergencyRoute: boolean;
-}
-
-interface EmergencyRoute {
-  id: string;
-  name: string;
-  startGate: string;
-  endGate: string;
-  path: Array<{ x: number; y: number }>;
-  priority: 'high' | 'medium' | 'low';
-  maxCapacity: number;
-  estimatedTime: number; // in seconds
+  type: 'entry' | 'exit' | 'emergency_exit';
+  x: number;
+  y: number;
+  isActive: boolean;
 }
 
 export const FloorPlanManager = () => {
-  const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<FloorPlan | null>(null);
+  const { floorPlan, updateFloorPlan, updateGates, updateEmergencyRoutes } = useFloorPlan();
   const [isUploading, setIsUploading] = useState(false);
   const [isAddingGate, setIsAddingGate] = useState(false);
   const [isDrawingRoute, setIsDrawingRoute] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<Array<{ x: number; y: number }>>([]);
-  const [newGate, setNewGate] = useState<Partial<Gate>>({
-    type: 'entrance',
-    status: 'active',
-    capacity: 100,
-    isEmergencyRoute: false
+  const [newGate, setNewGate] = useState<Partial<LocalGate>>({
+    type: 'entry',
+    isActive: true
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,68 +61,46 @@ export const FloorPlanManager = () => {
       // Create object URL for immediate display
       const imageUrl = URL.createObjectURL(file);
       
-      const newPlan: FloorPlan = {
-        id: `plan-${Date.now()}`,
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        imageUrl,
-        uploadedAt: new Date(),
-        gates: [],
-        emergencyRoutes: []
-      };
-
-      setFloorPlans(prev => [...prev, newPlan]);
-      setSelectedPlan(newPlan);
+      await updateFloorPlan(imageUrl);
       toast.success('Floor plan uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload floor plan');
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [updateFloorPlan]);
 
   const handleMapClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!selectedPlan || !mapContainerRef.current) return;
+    if (!floorPlan || !mapContainerRef.current) return;
 
     const rect = mapContainerRef.current.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
 
     if (isAddingGate) {
-      const gateId = `gate-${Date.now()}`;
-      const gate: Gate = {
-        id: gateId,
-        name: newGate.name || `Gate ${selectedPlan.gates.length + 1}`,
-        type: newGate.type as Gate['type'],
-        position: { x, y },
-        status: newGate.status as Gate['status'],
-        capacity: newGate.capacity || 100,
-        isEmergencyRoute: newGate.isEmergencyRoute || false
+      const gate: FloorPlanGate = {
+        id: `gate-${Date.now()}`,
+        name: newGate.name || `Gate ${floorPlan.gates.length + 1}`,
+        type: newGate.type as FloorPlanGate['type'],
+        x,
+        y,
+        isActive: newGate.isActive || true
       };
 
-      setSelectedPlan(prev => prev ? {
-        ...prev,
-        gates: [...prev.gates, gate]
-      } : null);
-
-      setFloorPlans(prev => prev.map(plan => 
-        plan.id === selectedPlan.id 
-          ? { ...plan, gates: [...plan.gates, gate] }
-          : plan
-      ));
+      const updatedGates = [...floorPlan.gates, gate];
+      updateGates(updatedGates);
 
       setIsAddingGate(false);
       setNewGate({
-        type: 'entrance',
-        status: 'active',
-        capacity: 100,
-        isEmergencyRoute: false
+        type: 'entry',
+        isActive: true
       });
       
       toast.success(`Gate "${gate.name}" added successfully`);
     } else if (isDrawingRoute) {
       setCurrentRoute(prev => [...prev, { x, y }]);
     }
-  }, [selectedPlan, isAddingGate, isDrawingRoute, newGate]);
+  }, [floorPlan, isAddingGate, isDrawingRoute, newGate, updateGates]);
 
   const finishRoute = useCallback(() => {
     if (currentRoute.length < 2) {
@@ -152,69 +108,48 @@ export const FloorPlanManager = () => {
       return;
     }
 
-    const routeId = `route-${Date.now()}`;
-    const newRoute: EmergencyRoute = {
-      id: routeId,
-      name: `Emergency Route ${selectedPlan?.emergencyRoutes.length || 0 + 1}`,
-      startGate: '', // Will be assigned based on nearest gates
-      endGate: '',
+    if (!floorPlan) return;
+
+    const newRoute: FloorPlanRoute = {
+      id: `route-${Date.now()}`,
+      name: `Emergency Route ${floorPlan.emergencyRoutes.length + 1}`,
       path: currentRoute,
-      priority: 'medium',
-      maxCapacity: 500,
-      estimatedTime: Math.round(currentRoute.length * 15) // Rough estimate
+      isActive: true,
+      scenario: 'general',
+      priority: 1
     };
 
-    if (selectedPlan) {
-      setSelectedPlan(prev => prev ? {
-        ...prev,
-        emergencyRoutes: [...prev.emergencyRoutes, newRoute]
-      } : null);
-
-      setFloorPlans(prev => prev.map(plan => 
-        plan.id === selectedPlan.id 
-          ? { ...plan, emergencyRoutes: [...plan.emergencyRoutes, newRoute] }
-          : plan
-      ));
-    }
+    const updatedRoutes = [...floorPlan.emergencyRoutes, newRoute];
+    updateEmergencyRoutes(updatedRoutes);
 
     setCurrentRoute([]);
     setIsDrawingRoute(false);
     toast.success('Emergency route created successfully');
-  }, [currentRoute, selectedPlan]);
+  }, [currentRoute, floorPlan, updateEmergencyRoutes]);
 
   const deleteGate = useCallback((gateId: string) => {
-    if (!selectedPlan) return;
+    if (!floorPlan) return;
 
-    setSelectedPlan(prev => prev ? {
-      ...prev,
-      gates: prev.gates.filter(gate => gate.id !== gateId)
-    } : null);
-
-    setFloorPlans(prev => prev.map(plan => 
-      plan.id === selectedPlan.id 
-        ? { ...plan, gates: plan.gates.filter(gate => gate.id !== gateId) }
-        : plan
-    ));
+    const updatedGates = floorPlan.gates.filter(gate => gate.id !== gateId);
+    updateGates(updatedGates);
 
     toast.success('Gate deleted successfully');
-  }, [selectedPlan]);
+  }, [floorPlan, updateGates]);
 
-  const getGateIcon = (gate: Gate) => {
+  const getGateIcon = (gate: FloorPlanGate) => {
     switch (gate.type) {
-      case 'entrance': return <DoorOpen className="w-4 h-4" />;
+      case 'entry': return <DoorOpen className="w-4 h-4" />;
       case 'exit': return <DoorClosed className="w-4 h-4" />;
       case 'emergency_exit': return <AlertTriangle className="w-4 h-4" />;
-      case 'bidirectional': return <Route className="w-4 h-4" />;
       default: return <MapPin className="w-4 h-4" />;
     }
   };
 
-  const getGateColor = (gate: Gate) => {
+  const getGateColor = (gate: FloorPlanGate) => {
     switch (gate.type) {
-      case 'entrance': return 'bg-green-600 hover:bg-green-700';
+      case 'entry': return 'bg-green-600 hover:bg-green-700';
       case 'exit': return 'bg-blue-600 hover:bg-blue-700';
       case 'emergency_exit': return 'bg-red-600 hover:bg-red-700';
-      case 'bidirectional': return 'bg-purple-600 hover:bg-purple-700';
       default: return 'bg-gray-600 hover:bg-gray-700';
     }
   };
@@ -242,37 +177,12 @@ export const FloorPlanManager = () => {
         </div>
       </div>
 
-      {/* Floor Plan Selection */}
-      {floorPlans.length > 0 && (
-        <Card className="p-4">
-          <Label className="text-sm font-medium mb-2 block">Select Floor Plan</Label>
-          <Select
-            value={selectedPlan?.id || ''}
-            onValueChange={(value) => {
-              const plan = floorPlans.find(p => p.id === value);
-              setSelectedPlan(plan || null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a floor plan" />
-            </SelectTrigger>
-            <SelectContent>
-              {floorPlans.map((plan) => (
-                <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name} ({plan.gates.length} gates)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Card>
-      )}
-
-      {selectedPlan ? (
+      {floorPlan ? (
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Interactive Floor Plan */}
           <Card className="lg:col-span-2 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold">{selectedPlan.name}</h4>
+              <h4 className="font-semibold">Floor Plan</h4>
               <div className="flex gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -299,27 +209,17 @@ export const FloorPlanManager = () => {
                         <Label htmlFor="gateType">Gate Type</Label>
                         <Select 
                           value={newGate.type}
-                          onValueChange={(value) => setNewGate(prev => ({ ...prev, type: value as Gate['type'] }))}
+                          onValueChange={(value) => setNewGate(prev => ({ ...prev, type: value as LocalGate['type'] }))}
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="entrance">Entrance</SelectItem>
+                            <SelectItem value="entry">Entry</SelectItem>
                             <SelectItem value="exit">Exit</SelectItem>
                             <SelectItem value="emergency_exit">Emergency Exit</SelectItem>
-                            <SelectItem value="bidirectional">Bidirectional</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="gateCapacity">Capacity (people/min)</Label>
-                        <Input
-                          id="gateCapacity"
-                          type="number"
-                          value={newGate.capacity || 100}
-                          onChange={(e) => setNewGate(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
-                        />
                       </div>
                       <Button
                         onClick={() => {
@@ -368,20 +268,20 @@ export const FloorPlanManager = () => {
               onClick={handleMapClick}
             >
               <img 
-                src={selectedPlan.imageUrl} 
+                src={floorPlan.imageUrl} 
                 alt="Floor Plan" 
                 className="absolute inset-0 w-full h-full object-contain"
                 draggable={false}
               />
 
               {/* Gates */}
-              {selectedPlan.gates.map((gate) => (
+              {floorPlan.gates.map((gate) => (
                 <div
                   key={gate.id}
                   className={`absolute w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 ${getGateColor(gate)}`}
                   style={{ 
-                    left: `${gate.position.x}%`, 
-                    top: `${gate.position.y}%`,
+                    left: `${gate.x}%`, 
+                    top: `${gate.y}%`,
                     transform: 'translate(-50%, -50%)'
                   }}
                   title={`${gate.name} (${gate.type})`}
@@ -395,7 +295,7 @@ export const FloorPlanManager = () => {
               ))}
 
               {/* Emergency Routes */}
-              {selectedPlan.emergencyRoutes.map((route) => (
+              {floorPlan.emergencyRoutes.map((route) => (
                 <svg
                   key={route.id}
                   className="absolute inset-0 w-full h-full pointer-events-none"
@@ -443,9 +343,9 @@ export const FloorPlanManager = () => {
             {/* Gates List */}
             <div className="space-y-4">
               <div>
-                <h5 className="text-sm font-medium mb-2">Gates ({selectedPlan.gates.length})</h5>
+                <h5 className="text-sm font-medium mb-2">Gates ({floorPlan.gates.length})</h5>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {selectedPlan.gates.map((gate) => (
+                  {floorPlan.gates.map((gate) => (
                     <div key={gate.id} className="flex items-center justify-between p-2 border rounded">
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${getGateColor(gate).split(' ')[0]}`}>
@@ -454,7 +354,7 @@ export const FloorPlanManager = () => {
                         <div>
                           <div className="text-sm font-medium">{gate.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {gate.type} • {gate.capacity}/min
+                            {gate.type} • {gate.isActive ? 'Active' : 'Inactive'}
                           </div>
                         </div>
                       </div>
@@ -472,14 +372,14 @@ export const FloorPlanManager = () => {
 
               {/* Emergency Routes */}
               <div>
-                <h5 className="text-sm font-medium mb-2">Emergency Routes ({selectedPlan.emergencyRoutes.length})</h5>
+                <h5 className="text-sm font-medium mb-2">Emergency Routes ({floorPlan.emergencyRoutes.length})</h5>
                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {selectedPlan.emergencyRoutes.map((route) => (
+                  {floorPlan.emergencyRoutes.map((route) => (
                     <div key={route.id} className="flex items-center justify-between p-2 border rounded">
                       <div>
                         <div className="text-sm font-medium">{route.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {route.maxCapacity} capacity • {route.estimatedTime}s
+                          Priority {route.priority} • {route.isActive ? 'Active' : 'Inactive'}
                         </div>
                       </div>
                       <Badge variant="outline" className="text-xs">

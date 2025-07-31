@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import sampleVenueMap from '@/assets/sample-venue-map.jpg';
 import { FloorPlanManager } from '../admin/FloorPlanManager';
 import { EmergencyRouteManager } from '../admin/EmergencyRouteManager';
+import { useFloorPlan } from '@/hooks/useFloorPlan';
 
 interface Zone {
   id: string;
@@ -48,6 +49,7 @@ interface GateStatus {
 }
 
 export const InteractiveCrowdMap = () => {
+  const { floorPlan } = useFloorPlan();
   const [zones, setZones] = useState<Zone[]>([
     { id: 'entrance-main', name: 'Main Entrance', capacity: 500, current: 425, status: 'high', x: 20, y: 30, cameras: 3, emergencyExits: 2, lastUpdated: new Date(), trend: 'increasing' },
     { id: 'food-court', name: 'Food Court', capacity: 300, current: 135, status: 'medium', x: 60, y: 40, cameras: 2, emergencyExits: 1, lastUpdated: new Date(), trend: 'stable' },
@@ -211,14 +213,54 @@ export const InteractiveCrowdMap = () => {
             {/* Interactive Map */}
             <Card className="lg:col-span-2 p-6">
               <div className="relative bg-gray-50 rounded-lg h-96 overflow-hidden">
-                {/* Background Map */}
+                {/* Background Map - Use uploaded floor plan if available */}
                 <img 
-                  src={sampleVenueMap} 
-                  alt="Venue Floor Plan" 
-                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                  src={floorPlan?.imageUrl || sampleVenueMap} 
+                  alt={floorPlan ? "Uploaded Floor Plan" : "Venue Floor Plan"} 
+                  className="absolute inset-0 w-full h-full object-contain rounded-lg"
                 />
                 {/* Overlay for better marker visibility */}
                 <div className="absolute inset-0 bg-black/10 rounded-lg" />
+                
+                {/* Floor Plan Gates (if available) */}
+                {floorPlan?.gates.map((gate) => (
+                  <div
+                    key={gate.id}
+                    className={cn(
+                      "absolute w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110",
+                      gate.type === 'entry' ? "bg-green-600" :
+                      gate.type === 'exit' ? "bg-blue-600" : "bg-red-600"
+                    )}
+                    style={{ 
+                      left: `${gate.x}%`, 
+                      top: `${gate.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 20
+                    }}
+                    title={`${gate.name} (${gate.type})`}
+                  >
+                    <MapPin className="w-3 h-3 text-white" />
+                  </div>
+                ))}
+
+                {/* Emergency Routes (if available) */}
+                {floorPlan?.emergencyRoutes.map((route) => (
+                  <svg
+                    key={route.id}
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    style={{ zIndex: 15 }}
+                  >
+                    <path
+                      d={`M ${route.path.map(point => `${point.x}% ${point.y}%`).join(' L ')}`}
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray="5,5"
+                      opacity={0.8}
+                    />
+                  </svg>
+                ))}
+                
                 {/* Zone markers */}
                 {zones.map((zone) => (
                   <div
@@ -228,7 +270,11 @@ export const InteractiveCrowdMap = () => {
                       getZoneColor(zone.status),
                       selectedZone?.id === zone.id && "ring-4 ring-blue-300"
                     )}
-                    style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
+                    style={{ 
+                      left: `${zone.x}%`, 
+                      top: `${zone.y}%`,
+                      zIndex: 25
+                    }}
                     onClick={() => setSelectedZone(zone)}
                   >
                     <Users className="w-4 h-4 text-white" />
@@ -238,8 +284,8 @@ export const InteractiveCrowdMap = () => {
                   </div>
                 ))}
 
-                {/* Gate markers */}
-                {gates.map((gate) => (
+                {/* Default Gate markers (only if no floor plan) */}
+                {!floorPlan && gates.map((gate) => (
                   <div
                     key={gate.id}
                     className={cn(
@@ -247,7 +293,11 @@ export const InteractiveCrowdMap = () => {
                       gate.status === 'open' ? "bg-green-600" : 
                       gate.status === 'closed' ? "bg-red-600" : "bg-yellow-600"
                     )}
-                    style={{ left: `${gate.location.x}%`, top: `${gate.location.y}%` }}
+                    style={{ 
+                      left: `${gate.location.x}%`, 
+                      top: `${gate.location.y}%`,
+                      zIndex: 20
+                    }}
                     title={`${gate.name} - ${gate.status}`}
                   >
                     {gate.status === 'open' ? 

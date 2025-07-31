@@ -45,7 +45,13 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
 
     const handleSettingsUpdate = (updatedSettings: SystemSettings) => {
       if (!isMounted) return;
-      setSettings(updatedSettings);
+      setSettings(prev => {
+        // Only update if settings actually changed
+        if (JSON.stringify(prev) === JSON.stringify(updatedSettings)) {
+          return prev;
+        }
+        return updatedSettings;
+      });
       setLoading(false);
       setError(null);
     };
