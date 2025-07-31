@@ -12,6 +12,7 @@ import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
 import { AIInsights } from '../components/ai/AIInsights';
 import { InteractiveCrowdMap } from '../components/ai/InteractiveCrowdMap';
 import { SettingsPanel } from '../components/admin/SettingsPanel';
+import { DroneManager } from '../components/admin/DroneManager';
 import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
@@ -175,10 +176,11 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Map</TabsTrigger>
             <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
+            <TabsTrigger value="drones">Drone Control</TabsTrigger>
             <TabsTrigger value="alerts">Alert Management</TabsTrigger>
             <TabsTrigger value="controls">System Controls</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -269,6 +271,10 @@ const AdminDashboard = () => {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="drones" className="space-y-6">
+            <DroneManager />
           </TabsContent>
 
           <TabsContent value="alerts" className="space-y-6">
