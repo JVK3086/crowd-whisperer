@@ -58,14 +58,23 @@ export const FloorPlanManager = () => {
     setIsUploading(true);
     
     try {
-      // Create object URL for immediate display
-      const imageUrl = URL.createObjectURL(file);
-      
-      await updateFloorPlan(imageUrl);
-      toast.success('Floor plan uploaded successfully');
+      // Convert file to base64 for persistent storage
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageUrl = e.target?.result as string;
+        if (imageUrl) {
+          await updateFloorPlan(imageUrl);
+          toast.success('Floor plan uploaded successfully');
+        }
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image file');
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       toast.error('Failed to upload floor plan');
-    } finally {
       setIsUploading(false);
     }
   }, [updateFloorPlan]);
@@ -272,6 +281,13 @@ export const FloorPlanManager = () => {
                 alt="Floor Plan" 
                 className="absolute inset-0 w-full h-full object-contain"
                 draggable={false}
+                onError={(e) => {
+                  console.error('Failed to load floor plan image');
+                  toast.error('Failed to load floor plan image');
+                }}
+                onLoad={() => {
+                  console.log('Floor plan image loaded successfully');
+                }}
               />
 
               {/* Gates */}

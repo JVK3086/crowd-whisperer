@@ -218,6 +218,15 @@ export const InteractiveCrowdMap = () => {
                   src={floorPlan?.imageUrl || sampleVenueMap} 
                   alt={floorPlan ? "Uploaded Floor Plan" : "Venue Floor Plan"} 
                   className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                  onError={(e) => {
+                    console.error('Failed to load map image, falling back to sample');
+                    if (floorPlan?.imageUrl) {
+                      e.currentTarget.src = sampleVenueMap;
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log('Map image loaded successfully');
+                  }}
                 />
                 {/* Overlay for better marker visibility */}
                 <div className="absolute inset-0 bg-black/10 rounded-lg" />
