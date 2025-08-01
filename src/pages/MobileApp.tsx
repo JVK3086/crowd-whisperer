@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAIAnalysis } from '../hooks/useAIAnalysis';
 import { useMobileSettings } from '../hooks/useSettings';
+import { useFloorPlan } from '../hooks/useFloorPlan';
 import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
 import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
@@ -29,9 +30,12 @@ import {
   Activity,
   Phone,
   Download,
-  Info
+  Info,
+  DoorOpen,
+  DoorClosed
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import sampleVenueMap from '@/assets/sample-venue-map.jpg';
 
 // Mock data for crowd density zones - Kanha Shantivanam locations
 const crowdZones = [
@@ -53,6 +57,7 @@ const mockNotifications = [
 
 const MobileApp = () => {
   const { t } = useTranslation();
+  const { floorPlan } = useFloorPlan();
   const [currentLocation, setCurrentLocation] = useState({ x: 20, y: 42 }); // Near Main Gate
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState('map');
@@ -275,6 +280,7 @@ const MobileApp = () => {
               getStatusColor={getStatusColor}
               alertThresholds={alertThresholds}
               isFeatureEnabled={isFeatureEnabled}
+              floorPlan={floorPlan}
             />
           </TabsContent>
 
@@ -346,7 +352,7 @@ const MobileApp = () => {
 };
 
 // Live Crowd Map Component
-const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled }: any) => {
+const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled, floorPlan }: any) => {
   // Don't show map if feature is disabled
   if (!isFeatureEnabled('crowdHeatmapEnabled')) {
     return (
@@ -361,6 +367,24 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
     );
   }
 
+  const getGateIcon = (gate: any) => {
+    switch (gate.type) {
+      case 'entry': return <DoorOpen className="w-3 h-3" />;
+      case 'exit': return <DoorClosed className="w-3 h-3" />;
+      case 'emergency_exit': return <AlertTriangle className="w-3 h-3" />;
+      default: return <MapPin className="w-3 h-3" />;
+    }
+  };
+
+  const getGateColor = (gate: any) => {
+    switch (gate.type) {
+      case 'entry': return 'bg-green-600';
+      case 'exit': return 'bg-blue-600';
+      case 'emergency_exit': return 'bg-red-600';
+      default: return 'bg-gray-600';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* AI-Powered Live Crowd Map */}
@@ -368,7 +392,7 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Kanha Shantivanam - Live Map
+            {floorPlan ? 'Live Crowd Map' : 'Kanha Shantivanam - Live Map'}
             <Badge variant="outline" className="ml-auto text-xs">
               {aiLoading ? 'UPDATING...' : 'LIVE'}
             </Badge>
@@ -376,64 +400,114 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
           
           {/* Map Container */}
           <div className="relative w-full h-80 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border overflow-hidden">
-            {/* Venue Layout Background */}
-            <div className="absolute inset-0">
-              {/* Main Zones */}
-              {/* North Zone */}
-              <div className="absolute top-2 right-4 left-4 h-16 bg-green-200/30 rounded border border-green-300/50">
-                <div className="p-1 text-xs font-medium text-green-800">NORTH</div>
-                <div className="text-xs text-green-700 px-1">Meditation Hall • Auditorium • Family Quarters</div>
-              </div>
-              
-              {/* West Zone */}
-              <div className="absolute top-20 left-4 w-20 h-32 bg-blue-200/30 rounded border border-blue-300/50">
-                <div className="p-1 text-xs font-medium text-blue-800 transform -rotate-90 origin-top-left">WEST</div>
-                <div className="text-xs text-blue-700 px-1 mt-4">Gates • Parking</div>
-              </div>
-              
-              {/* Central Zone */}
-              <div className="absolute top-24 left-26 right-4 h-28 bg-yellow-200/30 rounded border border-yellow-300/50">
-                <div className="p-1 text-xs font-medium text-yellow-800">CENTRAL</div>
-                <div className="text-xs text-yellow-700 px-1">Main Hall • Yatra Garden • Control Tower</div>
-              </div>
-              
-              {/* South Zone */}
-              <div className="absolute bottom-8 left-4 right-4 h-16 bg-orange-200/30 rounded border border-orange-300/50">
-                <div className="p-1 text-xs font-medium text-orange-800">SOUTH</div>
-                <div className="text-xs text-orange-700 px-1">Dining • Sports Complex • Life Sheds</div>
-              </div>
-              
-              {/* East Zone */}
-              <div className="absolute top-20 right-4 w-16 h-40 bg-purple-200/30 rounded border border-purple-300/50">
-                <div className="p-1 text-xs font-medium text-purple-800">EAST</div>
-                <div className="text-xs text-purple-700 px-1 mt-2">Admin • Gym • Row Houses</div>
-              </div>
+            {/* Floor Plan Background or Default Layout */}
+            {floorPlan ? (
+              <>
+                {/* Uploaded Floor Plan */}
+                <img 
+                  src={floorPlan.imageUrl} 
+                  alt="Floor Plan" 
+                  className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                  onError={(e) => {
+                    console.error('Failed to load floor plan, falling back to default');
+                    e.currentTarget.src = sampleVenueMap;
+                  }}
+                />
+                {/* Overlay for better marker visibility */}
+                <div className="absolute inset-0 bg-black/10 rounded-lg" />
+                
+                {/* Floor Plan Gates */}
+                {floorPlan.gates?.map((gate) => (
+                  <div
+                    key={gate.id}
+                    className={cn(
+                      "absolute w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200",
+                      getGateColor(gate),
+                      "text-white shadow-lg"
+                    )}
+                    style={{ 
+                      left: `${gate.x}%`, 
+                      top: `${gate.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 20
+                    }}
+                    title={`${gate.name} (${gate.type})`}
+                  >
+                    {getGateIcon(gate)}
+                  </div>
+                ))}
 
-              {/* Key Landmarks */}
-              {/* Main Entrance */}
-              <div className="absolute top-24 left-6 w-4 h-4 bg-blue-600 rounded border-2 border-white">
-                <div className="absolute -top-6 -left-8 text-xs font-medium text-blue-800 whitespace-nowrap">Main Gate</div>
-              </div>
-              
-              {/* Meditation Hall */}
-              <div className="absolute top-8 left-1/2 w-4 h-4 bg-green-600 rounded border-2 border-white">
-                <div className="absolute -top-6 -left-8 text-xs font-medium text-green-800 whitespace-nowrap">Meditation Hall</div>
-              </div>
-              
-              {/* Dining Hall */}
-              <div className="absolute bottom-12 left-1/3 w-4 h-4 bg-orange-600 rounded border-2 border-white">
-                <div className="absolute -bottom-6 -left-6 text-xs font-medium text-orange-800 whitespace-nowrap">Dining</div>
-              </div>
-              
-              {/* Emergency Exits */}
-              <div className="absolute top-32 right-8 w-3 h-3 bg-red-500 rounded border border-white">
-                <div className="absolute -top-5 -left-4 text-xs text-red-600">Exit A</div>
-              </div>
-              <div className="absolute bottom-16 left-8 w-3 h-3 bg-red-500 rounded border border-white">
-                <div className="absolute -bottom-5 -left-4 text-xs text-red-600">Exit B</div>
-              </div>
-            </div>
+                {/* Emergency Routes */}
+                {floorPlan.emergencyRoutes?.map((route) => (
+                  <svg
+                    key={route.id}
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    style={{ zIndex: 15 }}
+                  >
+                    <path
+                      d={`M ${route.path.map(point => `${point.x}% ${point.y}%`).join(' L ')}`}
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray="5,5"
+                      opacity={0.8}
+                      className="animate-pulse"
+                    />
+                  </svg>
+                ))}
+              </>
+            ) : (
+              /* Default Venue Layout Background - Fallback when no floor plan */
+              <div className="absolute inset-0">
+                {/* North Zone */}
+                <div className="absolute top-2 right-4 left-4 h-16 bg-green-200/30 rounded border border-green-300/50">
+                  <div className="p-1 text-xs font-medium text-green-800">NORTH</div>
+                  <div className="text-xs text-green-700 px-1">Meditation Hall • Auditorium • Family Quarters</div>
+                </div>
+                
+                {/* West Zone */}
+                <div className="absolute top-20 left-4 w-20 h-32 bg-blue-200/30 rounded border border-blue-300/50">
+                  <div className="p-1 text-xs font-medium text-blue-800 transform -rotate-90 origin-top-left">WEST</div>
+                  <div className="text-xs text-blue-700 px-1 mt-4">Gates • Parking</div>
+                </div>
+                
+                {/* Central Zone */}
+                <div className="absolute top-24 left-26 right-4 h-28 bg-yellow-200/30 rounded border border-yellow-300/50">
+                  <div className="p-1 text-xs font-medium text-yellow-800">CENTRAL</div>
+                  <div className="text-xs text-yellow-700 px-1">Main Hall • Yatra Garden • Control Tower</div>
+                </div>
+                
+                {/* South Zone */}
+                <div className="absolute bottom-8 left-4 right-4 h-16 bg-orange-200/30 rounded border border-orange-300/50">
+                  <div className="p-1 text-xs font-medium text-orange-800">SOUTH</div>
+                  <div className="text-xs text-orange-700 px-1">Dining • Sports Complex • Life Sheds</div>
+                </div>
+                
+                {/* East Zone */}
+                <div className="absolute top-20 right-4 w-16 h-40 bg-purple-200/30 rounded border border-purple-300/50">
+                  <div className="p-1 text-xs font-medium text-purple-800">EAST</div>
+                  <div className="text-xs text-purple-700 px-1 mt-2">Admin • Gym • Row Houses</div>
+                </div>
 
+                {/* Key Landmarks */}
+                <div className="absolute top-24 left-6 w-4 h-4 bg-blue-600 rounded border-2 border-white">
+                  <div className="absolute -top-6 -left-8 text-xs font-medium text-blue-800 whitespace-nowrap">Main Gate</div>
+                </div>
+                <div className="absolute top-8 left-1/2 w-4 h-4 bg-green-600 rounded border-2 border-white">
+                  <div className="absolute -top-6 -left-8 text-xs font-medium text-green-800 whitespace-nowrap">Meditation Hall</div>
+                </div>
+                <div className="absolute bottom-12 left-1/3 w-4 h-4 bg-orange-600 rounded border-2 border-white">
+                  <div className="absolute -bottom-6 -left-6 text-xs font-medium text-orange-800 whitespace-nowrap">Dining</div>
+                </div>
+                <div className="absolute top-32 right-8 w-3 h-3 bg-red-500 rounded border border-white">
+                  <div className="absolute -top-5 -left-4 text-xs text-red-600">Exit A</div>
+                </div>
+                <div className="absolute bottom-16 left-8 w-3 h-3 bg-red-500 rounded border border-white">
+                  <div className="absolute -bottom-5 -left-4 text-xs text-red-600">Exit B</div>
+                </div>
+              </div>
+            )}
+            
             {/* Current Location */}
             <div 
               className="absolute w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-lg z-20 flex items-center justify-center"
@@ -445,8 +519,8 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
               </div>
             </div>
             
-            {/* Crowd Density Zones */}
-            {crowdZones.map((zone: any) => (
+            {/* Crowd Density Zones - only show if no floor plan */}
+            {!floorPlan && crowdZones.map((zone: any) => (
               <div
                 key={zone.id}
                 className={cn(
