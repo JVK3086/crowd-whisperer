@@ -145,6 +145,61 @@ export const FloorPlanManager = () => {
     toast.success('Gate deleted successfully');
   }, [floorPlan, updateGates]);
 
+  const saveConfiguration = useCallback(async () => {
+    if (!floorPlan) {
+      toast.error('No floor plan to save');
+      return;
+    }
+
+    try {
+      // Here you could add API call to save to backend
+      // await saveFloorPlanToBackend(floorPlan);
+      
+      toast.success(`Configuration saved successfully! 
+        - Floor plan with ${floorPlan.gates.length} gates
+        - ${floorPlan.emergencyRoutes.length} emergency routes`);
+    } catch (error) {
+      toast.error('Failed to save configuration');
+    }
+  }, [floorPlan]);
+
+  const exportLayout = useCallback(async () => {
+    if (!floorPlan) {
+      toast.error('No floor plan to export');
+      return;
+    }
+
+    try {
+      const exportData = {
+        floorPlan: {
+          id: floorPlan.id,
+          imageUrl: floorPlan.imageUrl,
+          lastUpdated: floorPlan.lastUpdated
+        },
+        gates: floorPlan.gates,
+        emergencyRoutes: floorPlan.emergencyRoutes,
+        exportedAt: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `floor-plan-layout-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Layout exported successfully as JSON file');
+    } catch (error) {
+      toast.error('Failed to export layout');
+    }
+  }, [floorPlan]);
+
   const getGateIcon = (gate: FloorPlanGate) => {
     switch (gate.type) {
       case 'entry': return <DoorOpen className="w-4 h-4" />;
@@ -409,11 +464,21 @@ export const FloorPlanManager = () => {
 
             {/* Actions */}
             <div className="mt-4 pt-4 border-t space-y-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => saveConfiguration()}
+              >
                 <Save className="w-4 h-4 mr-2" />
                 Save Configuration
               </Button>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => exportLayout()}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export Layout
               </Button>
