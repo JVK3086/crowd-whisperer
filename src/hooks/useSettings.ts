@@ -35,7 +35,7 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const subscriberId = `settings-hook-${Math.random().toString(36).substr(2, 9)}`;
+  const subscriberId = `settings-hook-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   // Initialize settings and subscribe to updates
   useEffect(() => {
@@ -46,8 +46,10 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
     const handleSettingsUpdate = (updatedSettings: SystemSettings) => {
       if (!isMounted) return;
       setSettings(prev => {
-        // Only update if settings actually changed
-        if (JSON.stringify(prev) === JSON.stringify(updatedSettings)) {
+        // Only update if settings actually changed to prevent infinite loops
+        const prevStr = JSON.stringify(prev);
+        const newStr = JSON.stringify(updatedSettings);
+        if (prevStr === newStr) {
           return prev;
         }
         return updatedSettings;
@@ -70,18 +72,18 @@ export function useSettings(autoSubscribe: boolean = true): UseSettingsResult {
     };
 
     try {
-      // Subscribe to settings updates
-      settingsService.subscribe(subscriberId, handleSettingsUpdate);
-
-      // Also listen for real-time settings updates
-      realTimeService.subscribe('settings_update', handleRealTimeSettingsUpdate);
-
-      // Get initial settings
+      // Get initial settings first
       const currentSettings = settingsService.getSettings();
       if (isMounted) {
         setSettings(currentSettings);
         setLoading(false);
       }
+
+      // Subscribe to settings updates
+      settingsService.subscribe(subscriberId, handleSettingsUpdate);
+
+      // Also listen for real-time settings updates
+      realTimeService.subscribe('settings_update', handleRealTimeSettingsUpdate);
 
     } catch (err) {
       handleError(err);

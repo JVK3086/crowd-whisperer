@@ -189,13 +189,18 @@ class SettingsService {
   }
 
   private notifySubscribers(): void {
-    this.subscribers.forEach(callback => {
-      try {
-        callback({ ...this.currentSettings });
-      } catch (error) {
-        console.error('Error notifying settings subscriber:', error);
-      }
-    });
+    // Use setTimeout to prevent infinite loops and stack overflow
+    setTimeout(() => {
+      this.subscribers.forEach((callback, subscriberId) => {
+        try {
+          callback({ ...this.currentSettings });
+        } catch (error) {
+          console.error(`Error notifying settings subscriber ${subscriberId}:`, error);
+          // Remove problematic subscriber to prevent future errors
+          this.subscribers.delete(subscriberId);
+        }
+      });
+    }, 0);
   }
 
   // Public API
@@ -308,8 +313,13 @@ class SettingsService {
     this.subscribers.set(subscriberId, callback);
     
     // Immediately call with current settings if initialized
+    // Use setTimeout to prevent infinite loops during initialization
     if (this.isInitialized) {
-      callback({ ...this.currentSettings });
+      setTimeout(() => {
+        if (this.subscribers.has(subscriberId)) {
+          callback({ ...this.currentSettings });
+        }
+      }, 0);
     }
   }
 

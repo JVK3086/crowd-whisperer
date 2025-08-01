@@ -52,7 +52,9 @@
     "reports": "Reports",
     "aiInsights": "AI Insights",
     "crowdHeatmap": "Crowd Heatmap",
-    "predictiveAlerts": "Predictive Alerts"
+    "predictiveAlerts": "Predictive Alerts",
+    "drones": "Drone Control",
+    "controls": "System Controls"
   },
   "alerts": {
     "low": "Low Capacity",
@@ -62,17 +64,22 @@
     "emergency": "Emergency Alert",
     "evacuation": "Evacuation Required",
     "crowdDensity": "Crowd Density Alert",
-    "systemAlert": "System Alert"
+    "systemAlert": "System Alert",
+    "disabled": "Alerts Off"
   },
   "zones": {
     "mainEntrance": "Main Entrance",
     "foodCourt": "Food Court",
     "centralHall": "Central Hall",
+    "entrance-main": "Main Entrance",
+    "food-court": "Food Court", 
+    "central-hall": "Central Hall",
     "capacity": "Capacity",
     "current": "Current",
     "status": "Status",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "noActiveZones": "No active zones configured"
   },
   "emergency": {
     "panicActivated": "Panic Alert Activated",
@@ -81,7 +88,10 @@
     "safeRoute": "Safe Route Calculated",
     "nearestExit": "Nearest Exit",
     "avoidArea": "Avoid This Area",
-    "followInstructions": "Follow Emergency Instructions"
+    "followInstructions": "Follow Emergency Instructions",
+    "mode": "Emergency Mode",
+    "exitMode": "Exit Emergency",
+    "modeActive": "EMERGENCY MODE ACTIVE - All systems in high alert status"
   },
   "settings": {
     "alertThresholds": "Alert Thresholds",

@@ -17,6 +17,7 @@ import { GateStatusNotification } from '../components/shared/GateStatusNotificat
 import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
+import { settingsService } from '../services/settingsService';
 import { 
   Shield, 
   Users, 
@@ -37,15 +38,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock data for real-time monitoring
-const venueZones = [
-  { id: 1, name: "Main Entrance", capacity: 500, current: 425, status: "high", x: 20, y: 30, cameras: 3 },
-  { id: 2, name: "Food Court", capacity: 300, current: 135, status: "medium", x: 60, y: 40, cameras: 2 },
-  { id: 3, name: "Exit Gate A", capacity: 200, current: 184, status: "critical", x: 80, y: 70, cameras: 4 },
-  { id: 4, name: "West Wing", capacity: 400, current: 98, status: "low", x: 15, y: 60, cameras: 2 },
-  { id: 5, name: "Central Hall", capacity: 600, current: 420, status: "high", x: 50, y: 55, cameras: 5 },
-  { id: 6, name: "North Corridor", capacity: 250, current: 45, status: "low", x: 40, y: 20, cameras: 2 },
-];
+// Mock data - will be replaced by dynamic zones in component
 
 const alerts = [
   { id: 1, type: "critical", zone: "Exit Gate A", message: "Crowd density exceeding 90% capacity", time: "1 min ago", active: true },
@@ -68,6 +61,31 @@ const AdminDashboard = () => {
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
+  
+  // Function to get venue zones from settings
+  const getVenueZones = () => {
+    const settingsData = settingsService.getSettings();
+    const zoneSettings = settingsData.zoneSettings;
+    
+    // Create zones based on admin configuration
+    return Object.entries(zoneSettings).map(([zoneId, config], index) => ({
+      id: index + 1,
+      name: t(`zones.${zoneId}`) || config.name,
+      capacity: config.capacity,
+      current: Math.floor(Math.random() * config.capacity), // Simulated current count
+      status: settingsService.getZoneThresholdStatus(
+        Math.floor(Math.random() * config.capacity), 
+        config.capacity
+      ),
+      x: 20 + (index * 15), // Dynamic positioning
+      y: 30 + (index * 10),
+      cameras: config.emergencyExitsCount || 2,
+      isActive: config.isActive,
+      alertsEnabled: config.alertsEnabled
+    })).filter(zone => zone.isActive);
+  };
+
+  const [venueZones, setVenueZones] = useState(() => getVenueZones());
   
   // AI Analysis hooks
   const { data: aiAnalysis, loading: aiLoading, refresh: refreshAI } = useAIAnalysis();
@@ -103,8 +121,19 @@ const AdminDashboard = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    // Refresh zones based on latest configuration
+    setVenueZones(getVenueZones());
     setTimeout(() => setRefreshing(false), 2000);
   };
+
+  // Update zones when settings change
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVenueZones(getVenueZones());
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [t]);
 
   const toggleGate = (gateId: string) => {
     // Send gate control command via real-time service
@@ -141,14 +170,14 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <Button
+              <Button
               onClick={handleRefresh}
               variant="outline"
               size="sm"
               disabled={refreshing}
             >
               <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
-              Refresh
+              {t('common.refresh')}
             </Button>
             <Button
               onClick={() => setEmergencyMode(!emergencyMode)}
@@ -156,7 +185,7 @@ const AdminDashboard = () => {
               size="sm"
             >
               <Power className="h-4 w-4 mr-2" />
-              {emergencyMode ? "Exit Emergency" : "Emergency Mode"}
+              {emergencyMode ? t('emergency.exitMode', 'Exit Emergency') : t('emergency.mode', 'Emergency Mode')}
             </Button>
             <Button variant="ghost" size="sm">
               <Settings className="h-4 w-4" />
@@ -169,7 +198,7 @@ const AdminDashboard = () => {
         <Alert className="mx-6 mt-4 border-destructive bg-destructive/10">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="font-semibold text-destructive">
-            EMERGENCY MODE ACTIVE - All systems in high alert status
+            {t('emergency.modeActive', 'EMERGENCY MODE ACTIVE - All systems in high alert status')}
           </AlertDescription>
         </Alert>
       )}
@@ -177,13 +206,13 @@ const AdminDashboard = () => {
       <div className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="interactive">Interactive Map</TabsTrigger>
-            <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
-            <TabsTrigger value="drones">Drone Control</TabsTrigger>
-            <TabsTrigger value="alerts">Alert Management</TabsTrigger>
-            <TabsTrigger value="controls">System Controls</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="overview">{t('dashboard.overview')}</TabsTrigger>
+            <TabsTrigger value="interactive">{t('admin.crowdHeatmap')}</TabsTrigger>
+            <TabsTrigger value="monitoring">{t('dashboard.zones')}</TabsTrigger>
+            <TabsTrigger value="drones">{t('admin.drones', 'Drone Control')}</TabsTrigger>
+            <TabsTrigger value="alerts">{t('admin.alerts')}</TabsTrigger>
+            <TabsTrigger value="controls">{t('admin.controls', 'System Controls')}</TabsTrigger>
+            <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -233,13 +262,18 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Zone Status */}
               <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Zone Status</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('zones.status')}</h3>
                 <div className="space-y-3">
-                  {venueZones.map((zone) => (
+                  {venueZones.filter(zone => zone.isActive).map((zone) => (
                     <div key={zone.id} className="flex items-center justify-between p-3 rounded border">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-3 h-3 rounded-full", getDensityColor(zone.current, zone.capacity))} />
                         <span className="font-medium">{zone.name}</span>
+                        {!zone.alertsEnabled && (
+                          <Badge variant="outline" className="text-xs">
+                            {t('alerts.disabled', 'Alerts Off')}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-4 text-sm">
                         <span>{zone.current}/{zone.capacity}</span>
@@ -252,6 +286,11 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ))}
+                  {venueZones.filter(zone => zone.isActive).length === 0 && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      {t('zones.noActiveZones', 'No active zones configured')}
+                    </div>
+                  )}
                 </div>
               </Card>
 
