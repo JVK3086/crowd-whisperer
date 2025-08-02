@@ -11,6 +11,11 @@ import { useFloorPlan } from '../hooks/useFloorPlan';
 import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
 import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
+import { QRScanner } from '../components/mobile/QRScanner';
+import { OfflineSupport } from '../components/mobile/OfflineSupport';
+import { EventSchedule } from '../components/mobile/EventSchedule';
+import { CrowdAlerts } from '../components/mobile/CrowdAlerts';
+import { FeedbackSystem } from '../components/mobile/FeedbackSystem';
 import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
@@ -32,7 +37,9 @@ import {
   Download,
   Info,
   DoorOpen,
-  DoorClosed
+  DoorClosed,
+  Calendar,
+  QrCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import sampleVenueMap from '@/assets/sample-venue-map.jpg';
@@ -219,26 +226,34 @@ const MobileApp = () => {
       {/* Main Content with Tabs */}
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="map" className="flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-7 text-xs">
+            <TabsTrigger value="map" className="flex flex-col items-center gap-1 p-2">
               <Map className="w-4 h-4" />
-              <span className="hidden sm:inline">Map</span>
+              <span className="text-xs">Map</span>
             </TabsTrigger>
-            <TabsTrigger value="gates" className="flex items-center gap-1">
+            <TabsTrigger value="gates" className="flex flex-col items-center gap-1 p-2">
               <Navigation className="w-4 h-4" />
-              <span className="hidden sm:inline">Gates</span>
+              <span className="text-xs">Gates</span>
             </TabsTrigger>
-            <TabsTrigger value="navigate" className="flex items-center gap-1">
+            <TabsTrigger value="navigate" className="flex flex-col items-center gap-1 p-2">
               <Route className="w-4 h-4" />
-              <span className="hidden sm:inline">Navigate</span>
+              <span className="text-xs">Navigate</span>
             </TabsTrigger>
-            <TabsTrigger value="emergency" className="flex items-center gap-1">
+            <TabsTrigger value="emergency" className="flex flex-col items-center gap-1 p-2">
               <Shield className="w-4 h-4" />
-              <span className="hidden sm:inline">Emergency</span>
+              <span className="text-xs">Emergency</span>
             </TabsTrigger>
-            <TabsTrigger value="alerts" className="flex items-center gap-1">
+            <TabsTrigger value="events" className="flex flex-col items-center gap-1 p-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-xs">Events</span>
+            </TabsTrigger>
+            <TabsTrigger value="tools" className="flex flex-col items-center gap-1 p-2">
+              <QrCode className="w-4 h-4" />
+              <span className="text-xs">Tools</span>
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex flex-col items-center gap-1 p-2">
               <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline">Alerts</span>
+              <span className="text-xs">Alerts</span>
             </TabsTrigger>
           </TabsList>
 
@@ -337,7 +352,18 @@ const MobileApp = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="events" className="mt-6">
+            <EventSchedule />
+          </TabsContent>
+
+          <TabsContent value="tools" className="mt-6 space-y-6">
+            <QRScanner />
+            <OfflineSupport />
+            <FeedbackSystem />
+          </TabsContent>
+
           <TabsContent value="alerts" className="mt-6">
+            <CrowdAlerts />
             <NotificationCenter 
               notifications={notifications}
               aiAnalysis={aiAnalysis}
