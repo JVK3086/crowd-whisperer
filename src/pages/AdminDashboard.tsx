@@ -18,6 +18,7 @@ import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
 import { settingsService } from '../services/settingsService';
+import { useFloorPlan } from '../hooks/useFloorPlan';
 import { 
   Shield, 
   Users, 
@@ -38,29 +39,59 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock data - will be replaced by dynamic zones in component
+// Dynamic alerts based on floor plan zones and gates
+const generateDynamicAlerts = (floorPlan: any, venueZones: any[]) => {
+  const alerts = [];
+  
+  // Zone-based alerts
+  venueZones.forEach(zone => {
+    const density = (zone.current / zone.capacity) * 100;
+    if (density >= 90) {
+      alerts.push({
+        id: `zone-${zone.id}`,
+        type: "critical",
+        zone: zone.name,
+        message: `Crowd density exceeding 90% capacity (${Math.round(density)}%)`,
+        time: "1 min ago",
+        active: true
+      });
+    } else if (density >= 75) {
+      alerts.push({
+        id: `zone-${zone.id}`,
+        type: "warning", 
+        zone: zone.name,
+        message: `High foot traffic detected, monitor closely (${Math.round(density)}%)`,
+        time: "3 min ago",
+        active: true
+      });
+    }
+  });
 
-const alerts = [
-  { id: 1, type: "critical", zone: "Exit Gate A", message: "Crowd density exceeding 90% capacity", time: "1 min ago", active: true },
-  { id: 2, type: "warning", zone: "Main Entrance", message: "High foot traffic detected, monitor closely", time: "3 min ago", active: true },
-  { id: 3, type: "info", zone: "Central Hall", message: "Event starting, expected crowd increase", time: "5 min ago", active: false },
-  { id: 4, type: "emergency", zone: "Food Court", message: "Panic button activated - Location: Section B", time: "12 min ago", active: false },
-];
+  // Gate-based alerts from floor plan
+  if (floorPlan?.gates) {
+    floorPlan.gates.forEach(gate => {
+      if (gate.type === 'emergency_exit' && !gate.isActive) {
+        alerts.push({
+          id: `gate-${gate.id}`,
+          type: "warning",
+          zone: gate.name,
+          message: "Emergency exit is currently inactive",
+          time: "5 min ago",
+          active: true
+        });
+      }
+    });
+  }
 
-const gates = [
-  { id: "main-entrance", name: "Main Entrance", type: "entrance", status: "open", throughput: 45, location: "North Side" },
-  { id: "south-entrance", name: "South Entrance", type: "entrance", status: "open", throughput: 32, location: "South Side" },
-  { id: "exit-gate-a", name: "Exit Gate A", type: "exit", status: "open", throughput: 38, location: "East Side" },
-  { id: "exit-gate-b", name: "Exit Gate B", type: "exit", status: "closed", throughput: 0, location: "West Side" },
-  { id: "emergency-exit-1", name: "Emergency Exit 1", type: "emergency_exit", status: "closed", throughput: 0, location: "North Wing" },
-  { id: "emergency-exit-2", name: "Emergency Exit 2", type: "emergency_exit", status: "closed", throughput: 0, location: "South Wing" },
-];
+  return alerts;
+};
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
+  const { floorPlan } = useFloorPlan();
   
   // Function to get venue zones from settings
   const getVenueZones = () => {
@@ -86,6 +117,12 @@ const AdminDashboard = () => {
   };
 
   const [venueZones, setVenueZones] = useState(() => getVenueZones());
+  
+  // Generate dynamic alerts based on floor plan and zones
+  const alerts = generateDynamicAlerts(floorPlan, venueZones);
+  
+  // Get gates from floor plan or use empty array
+  const gates = floorPlan?.gates || [];
   
   // AI Analysis hooks
   const { data: aiAnalysis, loading: aiLoading, refresh: refreshAI } = useAIAnalysis();
@@ -136,10 +173,22 @@ const AdminDashboard = () => {
   }, [t]);
 
   const toggleGate = (gateId: string) => {
-    // Send gate control command via real-time service
+    // Send gate control command via real-time service and update floor plan
     const gate = gates.find(g => g.id === gateId);
     if (gate) {
-      const newAction = gate.status === 'open' ? 'close' : 'open';
+      const newAction = gate.isActive ? 'close' : 'open';
+      
+      // Update the gate status in floor plan
+      const updatedGates = gates.map(g => 
+        g.id === gateId ? { ...g, isActive: !g.isActive } : g
+      );
+      
+      if (floorPlan) {
+        import('../hooks/useFloorPlan').then(({ floorPlanService }) => {
+          floorPlanService.updateGates(updatedGates);
+        });
+      }
+      
       realTimeService.sendGateControl(gateId, newAction);
       console.log(`Toggling gate ${gateId} to ${newAction}`);
     }
@@ -370,78 +419,119 @@ const AdminDashboard = () => {
 
           <TabsContent value="controls" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Gate Controls */}
+              {/* Gate Controls - From Floor Plan */}
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Gate Management</h3>
-                <div className="space-y-3">
-                  {gates.map((gate) => (
-                    <div key={gate.id} className="flex items-center justify-between p-3 rounded border">
-                      <div className="flex items-center gap-3">
-                        {gate.status === 'open' ? (
-                          <Unlock className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Lock className="h-4 w-4 text-red-500" />
-                        )}
-                        <div>
-                          <div className="font-medium">{gate.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {gate.location} • {gate.type.replace('_', ' ')} • Throughput: {gate.throughput} people/min
+                {!floorPlan ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MapPin className="h-12 w-12 mx-auto mb-2" />
+                    <p>No floor plan uploaded</p>
+                    <p className="text-sm">Upload a floor plan in the Interactive Map tab to manage gates</p>
+                  </div>
+                ) : gates.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MapPin className="h-12 w-12 mx-auto mb-2" />
+                    <p>No gates configured</p>
+                    <p className="text-sm">Add gates to your floor plan in the Interactive Map tab</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {gates.map((gate) => (
+                      <div key={gate.id} className="flex items-center justify-between p-3 rounded border">
+                        <div className="flex items-center gap-3">
+                          {gate.isActive ? (
+                            <Unlock className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Lock className="h-4 w-4 text-red-500" />
+                          )}
+                          <div>
+                            <div className="font-medium">{gate.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Position: ({gate.x}, {gate.y}) • {gate.type.replace('_', ' ')}
+                            </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={gate.type === 'emergency_exit' ? 'destructive' : 'outline'} className="text-xs">
+                            {gate.type.replace('_', ' ')}
+                          </Badge>
+                          <Button
+                            onClick={() => toggleGate(gate.id)}
+                            variant={gate.isActive ? 'destructive' : 'default'}
+                            size="sm"
+                          >
+                            {gate.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={gate.type === 'emergency_exit' ? 'destructive' : 'outline'} className="text-xs">
-                          {gate.type.replace('_', ' ')}
-                        </Badge>
-                        <Button
-                          onClick={() => toggleGate(gate.id)}
-                          variant={gate.status === 'open' ? 'destructive' : 'default'}
-                          size="sm"
-                        >
-                          {gate.status === 'open' ? 'Close' : 'Open'}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </Card>
 
-              {/* Emergency Controls */}
+              {/* Emergency Controls - Based on Floor Plan Routes */}
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Emergency Controls</h3>
                 <div className="space-y-4">
-                  <Button onClick={broadcastAlert} className="w-full" variant="destructive">
-                    <Megaphone className="h-4 w-4 mr-2" />
-                    Emergency Broadcast
-                  </Button>
-                  <Button 
-                    onClick={() => emergencyManagementService.activateEmergencyGateProtocol('critical')}
-                    className="w-full" 
+                  <Button
+                    onClick={broadcastAlert}
                     variant="destructive"
+                    className="w-full"
                   >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Emergency Gate Protocol
+                    <Megaphone className="h-4 w-4 mr-2" />
+                    Broadcast Emergency Alert
                   </Button>
-                  <Button 
-                    onClick={() => emergencyManagementService.deactivateEmergencyGateProtocol()}
-                    className="w-full" 
-                    variant="outline"
-                  >
-                    <Unlock className="h-4 w-4 mr-2" />
-                    Restore Normal Gates
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Send Zone Alert
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Activate Evacuation Routes
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Generate Report
-                  </Button>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        if (floorPlan?.emergencyRoutes) {
+                          console.log('Activating emergency routes:', floorPlan.emergencyRoutes);
+                          // Activate all emergency routes
+                          const updatedRoutes = floorPlan.emergencyRoutes.map(route => ({
+                            ...route,
+                            isActive: true
+                          }));
+                          import('../hooks/useFloorPlan').then(({ floorPlanService }) => {
+                            floorPlanService.updateEmergencyRoutes(updatedRoutes);
+                          });
+                        }
+                      }}
+                    >
+                      <Activity className="h-4 w-4 mr-2" />
+                      Activate Evacuation
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      <Bell className="h-4 w-4 mr-2" />
+                      Sound Alarm
+                    </Button>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground p-3 rounded border bg-muted/30">
+                    <div className="font-semibold mb-2">Emergency Protocol Status:</div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>Emergency Routes:</span>
+                        <Badge variant="outline">
+                          {floorPlan?.emergencyRoutes?.length || 0} Configured
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Emergency Exits:</span>
+                        <Badge variant="outline">
+                          {gates.filter(g => g.type === 'emergency_exit').length} Configured
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Active Gates:</span>
+                        <Badge variant="outline">
+                          {gates.filter(g => g.isActive).length} Active
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </Card>
             </div>
