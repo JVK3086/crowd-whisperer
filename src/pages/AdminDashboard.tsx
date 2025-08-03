@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAIAnalysis, useAlertManager } from '../hooks/useAIAnalysis';
+import { useVenueConfig } from '../hooks/useVenueConfig';
 import { CrowdHeatmap } from '../components/ai/CrowdHeatmap';
 import { PredictiveAlerts } from '../components/ai/PredictiveAlerts';
 import { AIInsights } from '../components/ai/AIInsights';
@@ -92,13 +93,34 @@ const AdminDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
   const { floorPlan } = useFloorPlan();
+  const { config: venueConfig } = useVenueConfig();
   
-  // Function to get venue zones from settings
+  // Function to get venue zones from settings and venue config
   const getVenueZones = () => {
     const settingsData = settingsService.getSettings();
-    const zoneSettings = settingsData.zoneSettings;
     
-    // Create zones based on admin configuration
+    // If venue is configured, use its zones
+    if (venueConfig?.zones) {
+      return venueConfig.zones.map((zone, index) => ({
+        id: index + 1,
+        name: zone.name,
+        capacity: zone.capacity,
+        current: Math.floor(Math.random() * zone.capacity), // Simulated current count
+        status: settingsService.getZoneThresholdStatus(
+          Math.floor(Math.random() * zone.capacity), 
+          zone.capacity
+        ),
+        x: 20 + (index * 15), // Dynamic positioning
+        y: 30 + (index * 10),
+        cameras: 2,
+        isActive: true,
+        alertsEnabled: true,
+        type: zone.type
+      }));
+    }
+    
+    // Fallback to settings-based zones
+    const zoneSettings = settingsData.zoneSettings;
     return Object.entries(zoneSettings).map(([zoneId, config], index) => ({
       id: index + 1,
       name: t(`zones.${zoneId}`) || config.name,
@@ -213,8 +235,17 @@ const AdminDashboard = () => {
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
-              <p className="text-sm text-muted-foreground">{t('admin.subtitle')}</p>
+              <h1 className="text-2xl font-bold">
+                {venueConfig?.name ? `${venueConfig.name} Control Center` : t('admin.title')}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {venueConfig?.description || t('admin.subtitle')}
+              </p>
+              {venueConfig && (
+                <Badge variant="outline" className="mt-1">
+                  {venueConfig.type.replace('_', ' ')} • {venueConfig.category}
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">

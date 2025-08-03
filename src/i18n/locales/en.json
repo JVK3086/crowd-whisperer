@@ -25,36 +25,41 @@
   },
   "dashboard": {
     "title": "Smart Crowd Flow Management System",
-    "subtitle": "Real-time crowd monitoring and safety management",
+    "subtitle": "Intelligent crowd monitoring and safety management for any venue type",
     "overview": "System Overview",
     "alerts": "Active Alerts",
     "zones": "Zone Status",
     "analytics": "Analytics"
   },
   "mobile": {
-    "title": "SCFMS Mobile",
-    "subtitle": "Your safety companion",
-    "navigation": "Safe Navigation",
+    "title": "Mobile Assistant",
+    "subtitle": "Your intelligent venue companion",
+    "navigation": "Smart Navigation",
     "panic": "Emergency",
-    "exits": "Emergency Exits",
+    "exits": "Emergency Exits", 
     "status": "Entrance Status",
     "findRoute": "Find Safe Route",
-    "panicButton": "Panic Button",
-    "emergencyContacts": "Emergency Contacts"
+    "panicButton": "Emergency Button",
+    "emergencyContacts": "Emergency Contacts",
+    "crowdAlerts": "Crowd Alerts",
+    "venueInfo": "Venue Information",
+    "events": "Events & Schedule",
+    "feedback": "Feedback & Reports"
   },
   "admin": {
-    "title": "Admin Dashboard",
-    "subtitle": "System administration and configuration",
+    "title": "Control Center",
+    "subtitle": "Comprehensive venue management and monitoring",
     "settings": "System Settings",
     "alerts": "Alert Management",
-    "zones": "Zone Configuration",
+    "zones": "Zone Configuration", 
     "users": "User Management",
     "reports": "Reports",
     "aiInsights": "AI Insights",
     "crowdHeatmap": "Crowd Heatmap",
     "predictiveAlerts": "Predictive Alerts",
     "drones": "Drone Control",
-    "controls": "System Controls"
+    "controls": "System Controls",
+    "venueSetup": "Venue Setup"
   },
   "alerts": {
     "low": "Low Capacity",

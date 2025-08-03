@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAIAnalysis } from '../hooks/useAIAnalysis';
 import { useMobileSettings } from '../hooks/useSettings';
 import { useFloorPlan } from '../hooks/useFloorPlan';
+import { useVenueConfig } from '../hooks/useVenueConfig';
 import { PanicButton } from '../components/mobile/PanicButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
 import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
@@ -65,6 +66,7 @@ const mockNotifications = [
 const MobileApp = () => {
   const { t } = useTranslation();
   const { floorPlan } = useFloorPlan();
+  const { config: venueConfig } = useVenueConfig();
   const [currentLocation, setCurrentLocation] = useState({ x: 20, y: 42 }); // Near Main Gate
   const [isOnline, setIsOnline] = useState(true);
   const [activeTab, setActiveTab] = useState('map');
@@ -187,7 +189,12 @@ const MobileApp = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-semibold">{t('mobile.title')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{venueConfig?.name || t('mobile.title')}</h1>
+              {venueConfig?.type && (
+                <p className="text-xs text-muted-foreground capitalize">{venueConfig.type.replace('_', ' ')}</p>
+              )}
+            </div>
             {isOfflineMode && (
               <Badge variant="secondary" className="text-xs">
                 <Download className="w-3 h-3 mr-1" />
@@ -296,6 +303,7 @@ const MobileApp = () => {
               alertThresholds={alertThresholds}
               isFeatureEnabled={isFeatureEnabled}
               floorPlan={floorPlan}
+              venueConfig={venueConfig}
             />
           </TabsContent>
 
@@ -378,7 +386,7 @@ const MobileApp = () => {
 };
 
 // Live Crowd Map Component
-const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled, floorPlan }: any) => {
+const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getDensityColor, getStatusColor, alertThresholds, isFeatureEnabled, floorPlan, venueConfig }: any) => {
   // Don't show map if feature is disabled
   if (!isFeatureEnabled('crowdHeatmapEnabled')) {
     return (
@@ -416,13 +424,13 @@ const LiveCrowdMap = ({ crowdZones, currentLocation, aiAnalysis, aiLoading, getD
       {/* AI-Powered Live Crowd Map */}
       <Card>
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            {floorPlan ? 'Live Crowd Map' : 'Kanha Shantivanam - Live Map'}
-            <Badge variant="outline" className="ml-auto text-xs">
-              {aiLoading ? 'UPDATING...' : 'LIVE'}
-            </Badge>
-          </h2>
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              {venueConfig?.name ? `${venueConfig.name} - Live Map` : 'Live Crowd Map'}
+              <Badge variant="outline" className="ml-auto text-xs">
+                {aiLoading ? 'UPDATING...' : 'LIVE'}
+              </Badge>
+            </h2>
           
           {/* Map Container */}
           <div className="relative w-full h-80 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border overflow-hidden">
