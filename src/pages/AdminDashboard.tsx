@@ -20,6 +20,7 @@ import { realTimeService } from '../services/realTimeService';
 import { emergencyManagementService } from '../services/emergencyManagement';
 import { settingsService } from '../services/settingsService';
 import { useFloorPlan } from '../hooks/useFloorPlan';
+import { Link } from 'react-router-dom';
 import { 
   Shield, 
   Users, 
@@ -36,7 +37,8 @@ import {
   Lock,
   Unlock,
   Megaphone,
-  RefreshCw
+  RefreshCw,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -267,8 +269,11 @@ const AdminDashboard = () => {
               <Power className="h-4 w-4 mr-2" />
               {emergencyMode ? t('emergency.exitMode', 'Exit Emergency') : t('emergency.mode', 'Emergency Mode')}
             </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin/help">
+                <BookOpen className="h-4 w-4 mr-2" />
+                User Guide
+              </Link>
             </Button>
           </div>
         </div>

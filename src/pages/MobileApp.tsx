@@ -20,6 +20,7 @@ import { FeedbackSystem } from '../components/mobile/FeedbackSystem';
 import { GateStatusNotification } from '../components/shared/GateStatusNotification';
 import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
 import { realTimeService } from '../services/realTimeService';
+import { Link } from 'react-router-dom';
 import { 
   MapPin, 
   Navigation, 
@@ -40,7 +41,8 @@ import {
   DoorOpen,
   DoorClosed,
   Calendar,
-  QrCode
+  QrCode,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import sampleVenueMap from '@/assets/sample-venue-map.jpg';
@@ -218,6 +220,11 @@ const MobileApp = () => {
             ) : (
               <WifiOff className="h-4 w-4 text-destructive" />
             )}
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/mobile/help">
+                <BookOpen className="h-4 w-4" />
+              </Link>
+            </Button>
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
               {(notifications.length + activeAnnouncements.length) > 0 && (
