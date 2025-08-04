@@ -13,6 +13,8 @@ The Smart Crowd Flow Management System (SCFMS) leverages artificial intelligence
 ## 🌟 Key Features
 
 ### 🖥️ Admin Dashboard Features
+- **Universal Venue Setup**: Customizable venue types (stadiums, temples, malls, airports, festivals, concerts)
+- **Dynamic Venue Configuration**: Adaptive layouts and features based on venue type selection
 - **Real-time Crowd Monitoring**: Live display of crowd levels across all zones with color-coded heatmaps
 - **Interactive Map Controls**: Click zones to view details, control gates, and trigger emergency responses
 - **AI-Powered Analytics**: Advanced crowd density analysis with machine learning predictions
@@ -20,17 +22,22 @@ The Smart Crowd Flow Management System (SCFMS) leverages artificial intelligence
 - **Emergency Management**: One-click evacuation plan activation and broadcast messaging
 - **Gate Control System**: Dynamic opening/closing of entry and exit points with real-time throughput
 - **System Controls**: Emergency mode activation, alert management, and zone configuration
+- **User Guide Integration**: Built-in help system with tutorials, FAQ, and support
 - **Multi-Tab Interface**: Overview, Interactive Map, Live Monitoring, Alerts, and System Controls
 
 ### 📱 Mobile Application Features
 - **Live Crowd Heatmap**: Real-time visualization of safe and unsafe zones with density percentages
 - **Safe Route Navigation**: AI-suggested alternate paths with waypoint analysis and crowd avoidance
 - **Panic Button**: GPS-enabled emergency alert system with 5-second confirmation and location sharing
+- **QR Code Scanner**: Scan QR codes for instant venue information, announcements, and emergency instructions
+- **Event Schedule**: Real-time event updates, announcements, and schedule changes
+- **Crowd Density Alerts**: Smart notifications about high-density areas and safe alternatives
+- **Feedback & Reporting System**: Report issues, provide feedback, and upload media for venue improvements
+- **Offline Support**: Complete offline maps, emergency protocols, and cached venue information
 - **Push Notifications**: Real-time safety instructions and crowd condition alerts
-- **Offline Mode**: Basic functionality without internet with offline map data
-- **Multi-language Support**: Interface in English, Hindi (हिंदी), Telugu (తెలుగు), Tamil (தமிழ்)
+- **Multi-language Support**: Interface in English, Hindi (हिंदी), Telugu (తెలুगু), Tamil (தமிழ்)
 - **Emergency Contacts**: Quick-dial access to venue security, medical, and emergency services
-- **Tabbed Interface**: Map, Navigation, Emergency, and Alerts sections
+- **Tabbed Interface**: Map, Navigation, Emergency, Alerts, Events, and Tools sections
 
 ### 🤖 AI & Machine Learning Components
 - **Crowd Density Detection**: Real-time analysis with configurable capacity thresholds
@@ -167,6 +174,17 @@ The Smart Crowd Flow Management System (SCFMS) leverages artificial intelligence
 - **Alert Types**: Info, Warning, Emergency classifications
 - **Alert History**: Timestamped notification log
 
+#### 📅 **Events Tab**
+- **Live Event Schedule**: Real-time updates on venue events and activities
+- **Event Announcements**: Important announcements and schedule changes
+- **Event-Specific Safety Information**: Tailored safety guidelines for current events
+
+#### 🛠️ **Tools Tab**
+- **QR Code Scanner**: Scan venue QR codes for information and services
+- **Offline Support**: Access offline maps, emergency protocols, and cached data
+- **Feedback System**: Report issues, provide feedback, and upload media
+- **System Status**: Monitor connection status and sync with servers
+
 ## 🎛️ Admin Dashboard Usage Guide
 
 ### Getting Started
@@ -220,6 +238,15 @@ The Smart Crowd Flow Management System (SCFMS) leverages artificial intelligence
 6. **Post-Event Analysis**: Generate reports and analyze response effectiveness
 
 ## 🔧 System Configuration
+
+### Venue Types Supported
+The system now supports customizable configurations for different venue types:
+- **Sports Stadiums**: Sections, gates, concourses, emergency exits
+- **Religious Venues**: Prayer halls, courtyards, pilgrimage routes, ceremonial areas
+- **Shopping Malls**: Stores, food courts, parking areas, escalators
+- **Airports**: Terminals, gates, security checkpoints, baggage areas
+- **Festivals**: Stages, vendor areas, camping zones, entrance/exit points
+- **Concert Venues**: Main stage, VIP areas, merchandise zones, bar areas
 
 ### Zone Configuration
 Zones are configured with the following parameters:
@@ -410,12 +437,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - WebSocket real-time communication
 
 🚧 **Future Enhancements**
-- Backend API implementation
-- Database integration
-- Real CCTV integration
-- Push notification service
-- Advanced analytics dashboard
-- Mobile app deployment
+- Backend API implementation with Supabase integration
+- Database integration for persistent data storage
+- Real CCTV integration with AI-powered crowd detection
+- Push notification service for mobile alerts
+- Advanced analytics dashboard with historical data
+- Mobile app deployment to app stores
+- Multi-venue management capabilities
+- Integration with external emergency services
 
 ### Version History
 - **v1.0** (2025-01-28): Initial implementation with core features

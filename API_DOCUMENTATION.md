@@ -8,9 +8,11 @@ This document provides comprehensive documentation for all services, interfaces,
 2. [AI Analysis Service](#ai-analysis-service)
 3. [Emergency Management Service](#emergency-management-service)
 4. [Real-time Service](#real-time-service)
-5. [Data Models](#data-models)
-6. [React Hooks](#react-hooks)
-7. [Component APIs](#component-apis)
+5. [Venue Configuration Service](#venue-configuration-service)
+6. [Mobile Features API](#mobile-features-api)
+7. [Data Models](#data-models)
+8. [React Hooks](#react-hooks)
+9. [Component APIs](#component-apis)
 
 ## 🔧 Core Services
 
@@ -252,7 +254,146 @@ Broadcasts messages to specific zones or all areas.
 
 ---
 
+### Venue Configuration Service
+
+**File**: `src/hooks/useVenueConfig.ts`
+
+#### Interface: `VenueConfig`
+```typescript
+interface VenueConfig {
+  id: string;
+  name: string;
+  type: 'stadium' | 'temple' | 'mall' | 'airport' | 'festival' | 'concert';
+  description: string;
+  location: string;
+  capacity: number;
+  zones: VenueZone[];
+  emergencyContacts: EmergencyContact[];
+  features: VenueFeature[];
+  theme: VenueTheme;
+  settings: VenueSettings;
+}
+```
+
+#### Interface: `VenueZone`
+```typescript
+interface VenueZone {
+  id: string;
+  name: string;
+  capacity: number;
+  type: string;
+  coordinates: { x: number; y: number };
+  features: string[];
+}
+```
+
+#### Methods
+
+##### `getVenueConfig(): VenueConfig | null`
+Returns current venue configuration.
+
+##### `updateVenueConfig(config: Partial<VenueConfig>): void`
+Updates venue configuration with new values.
+
+##### `resetVenueConfig(): void`
+Resets to default configuration.
+
+---
+
+### Mobile Features API
+
+#### QR Scanner Service
+```typescript
+interface QRScanResult {
+  data: string;
+  type: 'venue_info' | 'emergency' | 'announcement' | 'service';
+  content: {
+    title: string;
+    description: string;
+    actionRequired?: boolean;
+    emergencyLevel?: 'low' | 'medium' | 'high' | 'critical';
+  };
+}
+```
+
+#### Event Schedule Service
+```typescript
+interface VenueEvent {
+  id: string;
+  title: string;
+  description: string;
+  startTime: Date;
+  endTime: Date;
+  location: string;
+  priority: 'normal' | 'high' | 'emergency';
+  type: 'announcement' | 'schedule_change' | 'safety_alert' | 'general';
+}
+```
+
+#### Feedback System API
+```typescript
+interface FeedbackReport {
+  id: string;
+  category: 'safety' | 'cleanliness' | 'accessibility' | 'service' | 'other';
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  location?: string;
+  media?: Array<{
+    type: 'photo' | 'video';
+    url: string;
+    timestamp: Date;
+  }>;
+  anonymous: boolean;
+  timestamp: Date;
+  status: 'submitted' | 'in_review' | 'resolved' | 'closed';
+}
+```
+
+---
+
 ## 🔗 React Hooks
+
+### useVenueConfig Hook
+
+**File**: `src/hooks/useVenueConfig.ts`
+
+#### `useVenueConfig()`
+Manages venue configuration and settings.
+
+**Returns:**
+```typescript
+{
+  venueConfig: VenueConfig | null;
+  updateVenueConfig: (config: Partial<VenueConfig>) => void;
+  resetVenueConfig: () => void;
+  isConfigured: boolean;
+}
+```
+
+**Usage:**
+```typescript
+import { useVenueConfig } from '@/hooks/useVenueConfig';
+
+function VenueSetup() {
+  const { venueConfig, updateVenueConfig, isConfigured } = useVenueConfig();
+  
+  const handleVenueTypeChange = (type: VenueType) => {
+    updateVenueConfig({ type });
+  };
+  
+  return (
+    <div>
+      <h2>Venue Configuration</h2>
+      {isConfigured ? (
+        <p>Venue: {venueConfig?.name}</p>
+      ) : (
+        <p>Please configure your venue</p>
+      )}
+    </div>
+  );
+}
+```
 
 ### useAIAnalysis Hook
 
@@ -385,6 +526,61 @@ interface SafeNavigationProps {
 - Real-time crowd data integration
 - Turn-by-turn navigation
 - Route difficulty and safety ratings
+
+### QRScanner Component
+
+**File**: `src/components/mobile/QRScanner.tsx`
+
+QR code scanning for venue information and services.
+
+**Props:**
+```typescript
+interface QRScannerProps {
+  className?: string;
+}
+```
+
+**Features:**
+- Camera integration for QR scanning
+- Venue-specific QR code interpretation
+- Emergency procedure access
+- Service information display
+
+### EventSchedule Component
+
+**File**: `src/components/mobile/EventSchedule.tsx`
+
+Real-time event information and announcements.
+
+**Features:**
+- Live event updates
+- Schedule change notifications
+- Priority-based announcement display
+- Event-specific safety information
+
+### FeedbackSystem Component
+
+**File**: `src/components/mobile/FeedbackSystem.tsx`
+
+User feedback and issue reporting system.
+
+**Features:**
+- Category-based issue reporting
+- Photo and video evidence upload
+- Anonymous reporting capability
+- Real-time submission status
+
+### OfflineSupport Component
+
+**File**: `src/components/mobile/OfflineSupport.tsx`
+
+Offline functionality and data caching.
+
+**Features:**
+- Offline map access
+- Cached emergency procedures
+- Connection status monitoring
+- Automatic data synchronization
 
 ---
 

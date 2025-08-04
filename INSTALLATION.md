@@ -52,6 +52,8 @@ Once the server starts, open your browser and navigate to:
 - **Main Application**: http://localhost:5173/
 - **Admin Dashboard**: http://localhost:5173/admin
 - **Mobile Interface**: http://localhost:5173/mobile
+- **Admin Help Guide**: http://localhost:5173/admin/help
+- **Mobile Help Guide**: http://localhost:5173/mobile/help
 
 ## 🔧 Detailed Setup Instructions
 
@@ -110,14 +112,16 @@ npm run clean        # Clean build artifacts (if available)
 
 ### Admin Dashboard
 - **URL**: http://localhost:5173/admin
-- **Features**: Real-time monitoring, interactive maps, emergency controls
+- **Features**: Real-time monitoring, interactive maps, emergency controls, venue setup
 - **Best for**: Event organizers, security teams, venue managers
+- **Help Guide**: http://localhost:5173/admin/help
 
 ### Mobile Application
 - **URL**: http://localhost:5173/mobile
-- **Features**: Crowd maps, navigation, panic button, alerts
+- **Features**: Crowd maps, navigation, panic button, alerts, QR scanner, offline support
 - **Best for**: Visitors, attendees, general public
 - **Mobile Testing**: Use browser dev tools to simulate mobile devices
+- **Help Guide**: http://localhost:5173/mobile/help
 
 ### Landing Page
 - **URL**: http://localhost:5173/
@@ -278,17 +282,24 @@ npm run preview
 ## 🧪 Testing the Installation
 
 ### Functional Tests
-1. **Navigate to admin dashboard**: Check real-time updates
-2. **Test mobile interface**: Verify panic button and navigation
-3. **Check responsiveness**: Test on different screen sizes
-4. **Verify real-time features**: Watch for live data updates
+1. **Navigate to admin dashboard**: Check real-time updates and venue setup
+2. **Test mobile interface**: Verify panic button, navigation, QR scanner, and offline features
+3. **Check responsiveness**: Test on different screen sizes and venue types
+4. **Verify real-time features**: Watch for live data updates and notifications
+5. **Test help systems**: Access user guides from both admin and mobile interfaces
 
 ### Feature Verification
 - ✅ **Interactive Maps**: Click zones and view details
 - ✅ **Panic Button**: Test emergency alert flow
 - ✅ **Navigation**: Calculate routes between destinations
+- ✅ **QR Scanner**: Test QR code scanning functionality
+- ✅ **Event Schedule**: View real-time event updates
+- ✅ **Feedback System**: Submit reports and feedback
+- ✅ **Offline Support**: Test offline map and emergency features
+- ✅ **Venue Setup**: Configure different venue types
 - ✅ **Multi-language**: Switch between supported languages
 - ✅ **Real-time Updates**: Watch crowd data changes
+- ✅ **Help Systems**: Access comprehensive user guides
 
 ## 📞 Getting Help
 
@@ -312,17 +323,21 @@ npm run preview
 
 If you've successfully completed all steps, you should now have:
 - ✅ SCFMS running on http://localhost:5173/
-- ✅ Admin dashboard accessible at `/admin`
-- ✅ Mobile interface available at `/mobile`
+- ✅ Admin dashboard accessible at `/admin` with venue setup
+- ✅ Mobile interface available at `/mobile` with enhanced features
+- ✅ Help guides accessible at `/admin/help` and `/mobile/help`
 - ✅ Real-time features working with mock data
+- ✅ Universal venue type support and customization
 - ✅ TypeScript compilation without errors
 - ✅ Hot reload working for development
 
 **Next Steps:**
-1. Explore the admin dashboard features
-2. Test the mobile interface on different devices
-3. Review the code structure for customization
-4. Check the main README for detailed feature documentation
+1. Explore the admin dashboard features and venue setup
+2. Test the mobile interface on different devices with new features
+3. Access the built-in help guides for comprehensive usage instructions
+4. Configure your venue type and customize the interface
+5. Review the code structure for further customization
+6. Check the main README for detailed feature documentation
 
 ---
 
