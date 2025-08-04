@@ -55,6 +55,75 @@ The Smart Crowd Flow Management System (SCFMS) leverages artificial intelligence
 
 ## 🏗️ Technical Architecture
 
+<lov-mermaid>
+graph TB
+    subgraph "Frontend Layer"
+        A[React Web App] --> B[Admin Dashboard]
+        A --> C[Mobile Interface]
+        A --> D[Landing Page]
+        B --> E[Real-time Monitoring]
+        B --> F[Interactive Maps]
+        B --> G[Emergency Controls]
+        C --> H[Crowd Heatmap]
+        C --> I[Navigation System]
+        C --> J[Panic Button]
+        C --> K[QR Scanner]
+        C --> L[Event Schedule]
+    end
+
+    subgraph "State Management"
+        M[React Context] --> N[Venue Config]
+        M --> O[AI Analysis Data]
+        M --> P[Emergency Alerts]
+        M --> Q[Real-time Updates]
+    end
+
+    subgraph "Services Layer"
+        R[AI Crowd Analysis] --> S[Crowd Density Detection]
+        R --> T[Predictive Analytics]
+        U[Emergency Management] --> V[Alert System]
+        U --> W[Evacuation Plans]
+        X[Real-time Service] --> Y[WebSocket Connection]
+        X --> Z[Live Data Updates]
+        AA[Venue Configuration] --> BB[Universal Setup]
+        AA --> CC[Zone Management]
+    end
+
+    subgraph "Data Layer"
+        DD[Mock Data Store] --> EE[Crowd Data]
+        DD --> FF[Zone Information]
+        DD --> GG[Emergency Contacts]
+        DD --> HH[Venue Configuration]
+        II[Local Storage] --> JJ[User Preferences]
+        II --> KK[Offline Data]
+        II --> LL[Cache Management]
+    end
+
+    subgraph "External Integration (Simulated)"
+        MM[CCTV Systems] --> NN[Video Analytics]
+        OO[GPS Services] --> PP[Location Tracking]
+        QQ[Notification System] --> RR[Push Alerts]
+        SS[Emergency Services] --> TT[911 Integration]
+    end
+
+    A --> M
+    M --> R
+    M --> U
+    M --> X
+    M --> AA
+    R --> DD
+    U --> DD
+    X --> DD
+    AA --> DD
+    C --> II
+    B --> MM
+    C --> OO
+    U --> QQ
+    U --> SS
+</lov-mermaid>
+
+## 🏗️ Technical Architecture
+
 ### Frontend Stack
 - **Framework**: React 18.3.1 with TypeScript 5.5.3
 - **Build Tool**: Vite 5.4.1 with SWC for fast compilation
@@ -405,6 +474,15 @@ npm run preview
 - **Accessibility**: Improve accessibility features and compliance
 - **Performance**: Optimize rendering and data handling
 - **Testing**: Add comprehensive test coverage
+
+## 📚 Additional Documentation
+
+For detailed technical information, please refer to:
+- **[System Architecture Documentation](SYSTEM_ARCHITECTURE.md)** - Comprehensive technical architecture diagrams and component interactions
+- **[Use Cases & Workflows Documentation](USE_CASES_WORKFLOWS.md)** - Detailed user journeys, workflows, and system integration patterns
+- **[API Documentation](API_DOCUMENTATION.md)** - Complete API reference and service documentation
+- **[Installation Guide](INSTALLATION.md)** - Step-by-step setup and configuration instructions
+- **[Mobile Features Guide](MOBILE_GATE_FEATURES.md)** - Enhanced mobile app features and capabilities
 
 ## 📄 License
 
