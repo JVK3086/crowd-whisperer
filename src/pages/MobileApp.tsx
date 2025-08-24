@@ -122,10 +122,10 @@ const MobileApp = () => {
   }, [mobileSettings?.offlineModeEnabled]);
 
   const getDensityColor = (density: number) => {
-    if (density >= 80) return 'bg-destructive';
-    if (density >= 60) return 'bg-yellow-500';
-    if (density >= 40) return 'bg-orange-500';
-    return 'bg-green-500';
+    if (density >= 80) return 'bg-error';
+    if (density >= 60) return 'bg-warning';
+    if (density >= 40) return 'bg-info';
+    return 'bg-success';
   };
 
   const getStatusColor = (status: string) => {
@@ -213,12 +213,12 @@ const MobileApp = () => {
             <LanguageSwitcher />
             <div className={cn(
               "w-2 h-2 rounded-full", 
-              isOnline ? "bg-green-400" : "bg-red-400"
+              isOnline ? "bg-success" : "bg-error"
             )} />
             {isOnline ? (
-              <Wifi className="h-4 w-4 text-green-500" />
+              <Wifi className="h-4 w-4 text-success" />
             ) : (
-              <WifiOff className="h-4 w-4 text-destructive" />
+              <WifiOff className="h-4 w-4 text-error" />
             )}
             <Button variant="ghost" size="sm" asChild>
               <Link to="/mobile/help">
@@ -228,7 +228,7 @@ const MobileApp = () => {
             <Button variant="ghost" size="sm">
               <Bell className="h-4 w-4" />
               {(notifications.length + activeAnnouncements.length) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-error text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   {notifications.length + activeAnnouncements.length}
                 </span>
               )}
@@ -281,11 +281,11 @@ const MobileApp = () => {
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-success rounded-full"></div>
                     <span>2 Entrances Open</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-success rounded-full"></div>
                     <span>1 Exit Open</span>
                   </div>
                   <Button 
