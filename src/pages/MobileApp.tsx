@@ -9,7 +9,7 @@ import { useAIAnalysis } from '../hooks/useAIAnalysis';
 import { useMobileSettings } from '../hooks/useSettings';
 import { useFloorPlan } from '../hooks/useFloorPlan';
 import { useVenueConfig } from '../hooks/useVenueConfig';
-import { PanicButton } from '../components/mobile/PanicButton';
+import { SOSButton } from '../components/mobile/SOSButton';
 import { SafeNavigation } from '../components/mobile/SafeNavigation';
 import { EntranceExitStatus } from '../components/mobile/EntranceExitStatus';
 import { QRScanner } from '../components/mobile/QRScanner';
@@ -340,13 +340,13 @@ const MobileApp = () => {
           <TabsContent value="emergency" className="mt-6">
             <div className="space-y-6">
               {isPanicButtonEnabled ? (
-                <PanicButton />
+                <SOSButton />
               ) : (
                 <Card className="p-6">
                   <Alert>
                     <Shield className="w-4 h-4" />
                     <AlertDescription>
-                      Emergency panic button has been disabled by system administrator.
+                      Emergency SOS has been disabled by system administrator.
                     </AlertDescription>
                   </Alert>
                 </Card>

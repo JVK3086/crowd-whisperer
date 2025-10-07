@@ -2,7 +2,7 @@ import { realTimeService } from './realTimeService';
 
 export interface EmergencyAlert {
   id: string;
-  type: 'panic_button' | 'evacuation' | 'medical' | 'security';
+  type: 'panic_button' | 'evacuation' | 'medical' | 'security' | 'disaster' | 'crowd_control';
   location: {
     lat: number;
     lng: number;
@@ -19,6 +19,7 @@ export interface EmergencyAlert {
   status: 'active' | 'acknowledged' | 'responding' | 'resolved';
   assignedTeams: string[];
   description: string;
+  emergencyType?: 'medical' | 'disaster' | 'security' | 'general';
   media?: Array<{
     type: 'image' | 'video' | 'audio';
     url: string;
@@ -174,6 +175,54 @@ class EmergencyManagementService {
     });
   }
 
+  async triggerSOS(
+    location: { lat: number; lng: number }, 
+    emergencyType: 'medical' | 'disaster' | 'security' | 'general',
+    deviceId: string, 
+    userId?: string
+  ): Promise<string> {
+    const typeMapping: Record<string, { type: EmergencyAlert['type']; severity: EmergencyAlert['severity']; description: string }> = {
+      medical: {
+        type: 'medical',
+        severity: 'critical',
+        description: 'Medical emergency - immediate medical assistance required'
+      },
+      disaster: {
+        type: 'disaster',
+        severity: 'critical',
+        description: 'Disaster/crowd control emergency - situation escalating'
+      },
+      security: {
+        type: 'security',
+        severity: 'high',
+        description: 'Security emergency - security threat detected'
+      },
+      general: {
+        type: 'panic_button',
+        severity: 'high',
+        description: 'General SOS alert - immediate assistance required'
+      }
+    };
+
+    const emergencyConfig = typeMapping[emergencyType];
+
+    return this.reportEmergency({
+      type: emergencyConfig.type,
+      location: {
+        lat: location.lat,
+        lng: location.lng,
+        zoneName: 'Rally Location'
+      },
+      reporter: {
+        userId,
+        deviceId
+      },
+      severity: emergencyConfig.severity,
+      description: emergencyConfig.description,
+      emergencyType
+    });
+  }
+
   async activateEvacuationPlan(planId: string, reason: string): Promise<boolean> {
     const plan = this.evacuationPlans.find(p => p.id === planId);
     if (!plan) {
@@ -234,18 +283,26 @@ class EmergencyManagementService {
         teams.push('security-team-1', 'medical-team-1');
         break;
       case 'medical':
-        teams.push('medical-team-1', 'medical-team-2');
+        teams.push('medical-team-1', 'medical-team-2', 'ambulance-team-1');
         break;
       case 'security':
-        teams.push('security-team-1', 'security-team-2');
+        teams.push('security-team-1', 'security-team-2', 'police-liaison');
+        break;
+      case 'disaster':
+        teams.push('disaster-recovery-team', 'crowd-control-team', 'security-team-1', 'medical-team-1');
+        break;
+      case 'crowd_control':
+        teams.push('crowd-control-team', 'security-team-1', 'security-team-2');
         break;
       case 'evacuation':
-        teams.push('security-team-1', 'security-team-2', 'medical-team-1');
+        teams.push('security-team-1', 'security-team-2', 'medical-team-1', 'disaster-recovery-team');
         break;
     }
 
     alert.assignedTeams = teams;
     alert.status = 'acknowledged';
+    
+    console.log(`SOS Alert ${alertId}: ${alert.emergencyType || alert.type} - Teams assigned:`, teams);
   }
 
   getActiveEmergencies(): EmergencyAlert[] {

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Camera, MapPin, Battery, Signal, Trash2, Play, Pause, RotateCcw, Eye } from 'lucide-react';
+import { Radio, MapPin, Battery, Signal, Trash2, Play, Pause, RotateCcw, Volume2, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface DroneCamera {
@@ -18,8 +18,7 @@ interface DroneCamera {
   battery: number;
   signal: number;
   position: { x: number; y: number; altitude: number };
-  type: 'surveillance' | 'emergency' | 'crowd-monitoring';
-  streamUrl?: string;
+  type: 'announcement' | 'crowd-monitoring' | 'emergency-response';
   lastUpdate: Date;
 }
 
@@ -28,24 +27,22 @@ export function DroneManager() {
   const [drones, setDrones] = useState<DroneCamera[]>([
     {
       id: 'drone-1',
-      name: 'Main Gate Monitor',
+      name: 'Main Stage Announcer',
       status: 'active',
       battery: 85,
       signal: 92,
       position: { x: 100, y: 150, altitude: 30 },
-      type: 'surveillance',
-      streamUrl: 'https://via.placeholder.com/400x300/000000/FFFFFF?text=Live+Feed+1',
+      type: 'announcement',
       lastUpdate: new Date()
     },
     {
       id: 'drone-2',
-      name: 'Crowd Overview',
+      name: 'Crowd Monitor Alpha',
       status: 'flying',
       battery: 67,
       signal: 88,
       position: { x: 250, y: 200, altitude: 45 },
       type: 'crowd-monitoring',
-      streamUrl: 'https://via.placeholder.com/400x300/000000/FFFFFF?text=Live+Feed+2',
       lastUpdate: new Date()
     }
   ]);
@@ -54,7 +51,7 @@ export function DroneManager() {
   const [isAddingDrone, setIsAddingDrone] = useState(false);
   const [newDrone, setNewDrone] = useState({
     name: '',
-    type: 'surveillance' as DroneCamera['type'],
+    type: 'announcement' as DroneCamera['type'],
     position: { x: 0, y: 0, altitude: 25 }
   });
 
@@ -80,7 +77,7 @@ export function DroneManager() {
     };
 
     setDrones(prev => [...prev, drone]);
-    setNewDrone({ name: '', type: 'surveillance', position: { x: 0, y: 0, altitude: 25 } });
+    setNewDrone({ name: '', type: 'announcement', position: { x: 0, y: 0, altitude: 25 } });
     setIsAddingDrone(false);
     
     toast({
@@ -137,27 +134,27 @@ export function DroneManager() {
 
   const getTypeIcon = (type: DroneCamera['type']) => {
     switch (type) {
-      case 'surveillance': return <Eye className="h-4 w-4" />;
-      case 'emergency': return <Camera className="h-4 w-4" />;
-      case 'crowd-monitoring': return <MapPin className="h-4 w-4" />;
-      default: return <Camera className="h-4 w-4" />;
+      case 'announcement': return <Volume2 className="h-4 w-4" />;
+      case 'emergency-response': return <Radio className="h-4 w-4" />;
+      case 'crowd-monitoring': return <Users className="h-4 w-4" />;
+      default: return <Radio className="h-4 w-4" />;
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Drone Fleet Management</h3>
+        <h3 className="text-lg font-semibold">Drone Fleet Management - Political Rally Mode</h3>
         <Dialog open={isAddingDrone} onOpenChange={setIsAddingDrone}>
           <DialogTrigger asChild>
             <Button>
-              <Camera className="mr-2 h-4 w-4" />
+              <Radio className="mr-2 h-4 w-4" />
               Add Drone
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Drone Camera</DialogTitle>
+              <DialogTitle>Add New Drone Equipment</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -181,8 +178,8 @@ export function DroneManager() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="surveillance">Surveillance</SelectItem>
-                    <SelectItem value="emergency">Emergency Response</SelectItem>
+                    <SelectItem value="announcement">Public Announcement</SelectItem>
+                    <SelectItem value="emergency-response">Emergency Response</SelectItem>
                     <SelectItem value="crowd-monitoring">Crowd Monitoring</SelectItem>
                   </SelectContent>
                 </Select>
@@ -234,9 +231,8 @@ export function DroneManager() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Fleet Overview</TabsTrigger>
-          <TabsTrigger value="feeds">Live Feeds</TabsTrigger>
           <TabsTrigger value="control">Control Panel</TabsTrigger>
         </TabsList>
 
@@ -302,47 +298,11 @@ export function DroneManager() {
           </div>
         </TabsContent>
 
-        <TabsContent value="feeds" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {drones.filter(drone => drone.streamUrl && drone.status !== 'inactive').map((drone) => (
-              <Card key={drone.id}>
-                <CardHeader>
-                  <CardTitle className="text-sm flex items-center space-x-2">
-                    <Camera className="h-4 w-4" />
-                    <span>{drone.name}</span>
-                    <Badge variant="outline" className={`${getStatusColor(drone.status)} text-white`}>
-                      LIVE
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video bg-black rounded-lg flex items-center justify-center text-white text-sm">
-                    {drone.streamUrl ? (
-                      <img 
-                        src={drone.streamUrl} 
-                        alt={`${drone.name} feed`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      'No Signal'
-                    )}
-                  </div>
-                  <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                    <span>Alt: {drone.position.altitude}m</span>
-                    <span>Battery: {drone.battery}%</span>
-                    <span>Signal: {drone.signal}%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
         <TabsContent value="control" className="space-y-4">
           <Alert>
-            <Camera className="h-4 w-4" />
+            <Radio className="h-4 w-4" />
             <AlertDescription>
-              Control panel for advanced drone operations. Select a drone to view detailed controls.
+              Control panel for drone operations. Drones are equipped with announcement systems and monitoring capabilities for political rallies.
             </AlertDescription>
           </Alert>
           
@@ -370,13 +330,15 @@ export function DroneManager() {
                   
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" className="flex-1">
+                      <Volume2 className="h-3 w-3 mr-1" />
+                      Broadcast
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1">
+                      <Users className="h-3 w-3 mr-1" />
+                      Monitor Crowd
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1">
                       Emergency Return
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      Patrol Mode
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      Follow Target
                     </Button>
                   </div>
                 </CardContent>

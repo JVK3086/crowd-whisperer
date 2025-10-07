@@ -26,12 +26,12 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { VenueSetup, VenueConfig } from "@/components/admin/VenueSetup";
 
 const FEATURES = [
-  { icon: BarChart3, title: "Real-time Analytics", description: "Live crowd density monitoring and AI-powered insights" },
-  { icon: MapPin, title: "Smart Navigation", description: "Optimal routing based on current crowd conditions" },
-  { icon: Shield, title: "Emergency Management", description: "Comprehensive safety protocols and emergency response" },
-  { icon: Globe, title: "Multi-language Support", description: "Interface available in multiple languages" },
-  { icon: Zap, title: "Instant Alerts", description: "Real-time notifications and crowd management alerts" },
-  { icon: Clock, title: "24/7 Monitoring", description: "Continuous venue monitoring and automated responses" }
+  { icon: BarChart3, title: "Real-time Analytics", description: "Live crowd density monitoring and AI-powered insights for rally management" },
+  { icon: MapPin, title: "Smart Navigation", description: "Optimal routing based on current crowd conditions at political events" },
+  { icon: Shield, title: "Emergency SOS System", description: "Multi-type emergency alerts for medical, disaster recovery, and security teams" },
+  { icon: Globe, title: "Multi-language Support", description: "Interface available in multiple languages for diverse attendees" },
+  { icon: Zap, title: "Instant Team Alerts", description: "Real-time notifications to medical and disaster recovery teams" },
+  { icon: Clock, title: "24/7 Event Monitoring", description: "Continuous rally monitoring and automated emergency responses" }
 ];
 
 const Index = () => {
@@ -71,12 +71,12 @@ const Index = () => {
         </div>
         <div className="container mx-auto p-6 max-w-4xl">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center mb-4">
               <Building2 className="h-10 w-10 text-primary mr-3" />
-              <h1 className="text-3xl font-bold">Crowd Flow Management Setup</h1>
+              <h1 className="text-3xl font-bold">Political Rally Setup</h1>
             </div>
             <p className="text-xl text-muted-foreground">
-              Configure your venue for intelligent crowd management
+              Configure your rally venue for intelligent crowd management
             </p>
           </div>
           
@@ -103,11 +103,11 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            Smart Crowd Flow Management
+            Smart Crowd Management for Political Rallies
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8">
-            Intelligent crowd monitoring and safety management for any venue type
+            Intelligent crowd monitoring and safety management for political events, rallies, and mass gatherings
           </p>
 
           {venueConfig && (
@@ -132,9 +132,9 @@ const Index = () => {
             <Card className="mb-12 border-2 border-dashed border-primary/20">
               <CardContent className="pt-6">
                 <Building2 className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Setup Your Venue</h3>
+                <h3 className="text-lg font-semibold mb-2">Setup Your Political Rally</h3>
                 <p className="text-muted-foreground mb-4">
-                  Configure your specific venue type for optimized crowd management
+                  Configure your rally venue for optimized crowd management and emergency response
                 </p>
                 <Button onClick={() => setShowVenueSetup(true)} className="w-full">
                   <Building2 className="h-4 w-4 mr-2" />
